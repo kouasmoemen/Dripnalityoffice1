@@ -10,6 +10,8 @@ export interface Product {
   color: string;
   image: string;
   gallery: string[];
+  hoverImage?: string;
+  hoverVideo?: string;
   description: string;
   soldOut: boolean;
 }
@@ -22,11 +24,13 @@ interface QuickViewProps {
 
 export default function QuickView({ product, onClose, onAdd }: QuickViewProps) {
   const [activeImage, setActiveImage] = useState('');
+  const [showVideo, setShowVideo] = useState(false);
   const [size, setSize] = useState('M');
 
   useEffect(() => {
     if (product) {
       setActiveImage(product.image);
+      setShowVideo(false);
       setSize('M');
       document.body.style.overflow = 'hidden';
     }
@@ -35,16 +39,39 @@ export default function QuickView({ product, onClose, onAdd }: QuickViewProps) {
 
   if (!product) return null;
 
+  const chooseImage = (image: string) => {
+    setShowVideo(false);
+    setActiveImage(image);
+  };
+
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-black/65 p-3 sm:p-6" role="dialog" aria-modal="true" aria-label={product.name}>
       <button className="absolute inset-0 cursor-default" aria-label="Close quick view" onClick={onClose} />
       <div className="relative z-10 grid max-h-[94svh] w-full max-w-6xl overflow-y-auto bg-white lg:grid-cols-[1.08fr_.92fr]">
         <button className="absolute right-4 top-4 z-20 grid size-9 place-items-center rounded-full bg-white text-xl shadow-sm transition hover:bg-black hover:text-white" onClick={onClose} aria-label="Close">×</button>
         <div className="flex min-h-[430px] flex-col bg-black/[.045] p-5 sm:p-8">
-          <div className="relative min-h-[330px] flex-1"><Image src={activeImage} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 55vw" className="object-contain" priority /></div>
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">{product.gallery.map((image, index) => <button key={image} className={`relative h-20 w-16 shrink-0 border ${activeImage === image ? 'border-black' : 'border-transparent opacity-50'}`} onClick={() => setActiveImage(image)} aria-label={`View image ${index + 1}`}><Image src={image} alt="" fill sizes="64px" className="object-cover" /></button>)}</div>
+          <div className="relative min-h-[330px] flex-1 overflow-hidden bg-black/[.02]">
+            {showVideo && product.hoverVideo ? (
+              <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline controls preload="metadata" aria-label={`${product.name} construction film`} />
+            ) : (
+              <Image src={activeImage} alt={product.name} fill sizes="(max-width: 1024px) 100vw, 55vw" className="object-contain" priority />
+            )}
+          </div>
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+            {product.gallery.map((image, index) => (
+              <button key={image} className={`relative h-20 w-16 shrink-0 border ${!showVideo && activeImage === image ? 'border-black' : 'border-transparent opacity-50'}`} onClick={() => chooseImage(image)} aria-label={`View image ${index + 1}`}>
+                <Image src={image} alt="" fill sizes="64px" className="object-cover" />
+              </button>
+            ))}
+            {product.hoverVideo && (
+              <button className={`relative grid h-20 w-16 shrink-0 place-items-center overflow-hidden border bg-black text-[8px] font-bold tracking-[.12em] text-white ${showVideo ? 'border-black' : 'border-transparent opacity-60'}`} onClick={() => setShowVideo(true)} aria-label="Play construction video">
+                <video className="absolute inset-0 h-full w-full object-cover opacity-55" src={product.hoverVideo} muted playsInline preload="metadata" />
+                <span className="relative">FILM</span>
+              </button>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col p-7 sm:p-11 lg:p-14">
+        <div className="flex min-h-[520px] flex-col p-7 sm:p-11 lg:p-14">
           <p className="text-[9px] font-bold tracking-[0.2em] text-black/45">DRIPNALITY / DROP 01</p>
           <h2 className="mt-4 text-[clamp(1.9rem,3vw,3rem)] font-black leading-[.92] tracking-[-.065em] uppercase">{product.name}</h2>
           <p className="mt-4 text-[15px] font-bold">${product.price}.00</p>

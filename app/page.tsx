@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import QuickView, { Product } from '../components/QuickView';
 import Footer from '../components/Footer';
+import { supabase } from '../lib/supabase';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -16,8 +17,9 @@ const products: Product[] = [
     name: 'Black Signature Zip Hoodie',
     price: 145,
     color: 'Black',
-    image: '/don1black.png',
-    gallery: ['/don1black.png', '/ds black1.jpg', '/ds black2.jpg', '/ds black3.jpg', '/ds black4.jpg', '/ds black5.jpg', '/ds black6.jpg', '/ds black7.jpg', '/ds black8.jpg'],
+    image: '/hoodie-black-artwork.jpg',
+    hoverImage: '/ds black1.jpg',
+    gallery: ['/hoodie-black-artwork.jpg', '/don1black.png', '/ds black1.jpg', '/ds black2.jpg', '/ds black3.jpg', '/ds black4.jpg', '/ds black5.jpg', '/ds black6.jpg', '/ds black7.jpg', '/ds black8.jpg'],
     description: 'Heavyweight French terry zip hoodie with a structured double-layered hood, custom hardware and a washed black finish.',
     soldOut: true,
   },
@@ -26,8 +28,9 @@ const products: Product[] = [
     name: 'Brown Archive Zip Hoodie',
     price: 155,
     color: 'Brown',
-    image: '/don2brown.png',
-    gallery: ['/don2brown.png', '/ds brown1.jpg', '/ds brown2.jpg', '/ds brown3.jpg', '/ds brown4.jpg', '/ds brown5.jpg', '/ds brown6.jpg', '/ds brown7.jpg', '/ds brown8.jpg'],
+    image: '/hoodie-brown-artwork.jpg',
+    hoverVideo: '/vid brown1.mp4',
+    gallery: ['/hoodie-brown-artwork.jpg', '/don2brown.png', '/ds brown1.jpg', '/ds brown2.jpg', '/ds brown3.jpg', '/ds brown4.jpg', '/ds brown5.jpg', '/ds brown6.jpg', '/ds brown7.jpg', '/ds brown8.jpg'],
     description: 'Pigment-dyed archive zip hoodie cut from dense French terry, finished with an intentionally lived-in surface.',
     soldOut: true,
   },
@@ -43,6 +46,10 @@ function BagIcon() {
   return <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.55" aria-hidden="true"><path d="M5.5 8.5h13l-1 11H6.5l-1-11Z" /><path d="M8.5 8.5V6.4a3.5 3.5 0 0 1 7 0v2.1" /></svg>;
 }
 
+function HeartIcon({ filled = false }: { filled?: boolean }) {
+  return <svg className="h-[16px] w-[16px]" viewBox="0 0 24 24" fill={filled ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.65" aria-hidden="true"><path d="M20.8 4.9a5.4 5.4 0 0 0-7.7 0L12 6l-1.1-1.1a5.4 5.4 0 0 0-7.7 7.7L12 21l8.8-8.4a5.4 5.4 0 0 0 0-7.7Z" /></svg>;
+}
+
 function MenuIcon() {
   return <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>;
 }
@@ -55,6 +62,30 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
+  const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadWishlist = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('wishlist_items')
+        .select('products!inner(slug)')
+        .eq('user_id', user.id);
+
+      if (data) {
+        const ids = data.flatMap((item) => {
+          const product = item.products as unknown as { slug?: string } | { slug?: string }[] | null;
+          return Array.isArray(product) ? product.map((entry) => entry.slug).filter((slug): slug is string => Boolean(slug)) : product?.slug ? [product.slug] : [];
+        });
+        setWishlistedIds(ids);
+      }
+    };
+
+    loadWishlist();
+  }, []);
 
   useGSAP(() => {
     const timeline = gsap.timeline();
@@ -143,6 +174,31 @@ export default function Home() {
     }));
   };
 
+  const toggleWishlist = async (product: Product) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.assign('/account');
+      return;
+    }
+
+    const isSaved = wishlistedIds.includes(product.id);
+    setWishlistedIds((current) => isSaved ? current.filter((id) => id !== product.id) : [...current, product.id]);
+
+    const { data: storedProduct, error: productError } = await supabase.from('products').select('id').eq('slug', product.id).maybeSingle();
+    if (productError || !storedProduct) {
+      setWishlistedIds((current) => isSaved ? [...current, product.id] : current.filter((id) => id !== product.id));
+      return;
+    }
+
+    const { error } = isSaved
+      ? await supabase.from('wishlist_items').delete().eq('user_id', user.id).eq('product_id', storedProduct.id)
+      : await supabase.from('wishlist_items').insert({ user_id: user.id, product_id: storedProduct.id });
+
+    if (error) {
+      setWishlistedIds((current) => isSaved ? [...current, product.id] : current.filter((id) => id !== product.id));
+    }
+  };
+
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const results = products.filter((product) => product.name.toLowerCase().includes(query.trim().toLowerCase()));
@@ -152,18 +208,20 @@ export default function Home() {
       <header data-nav className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between px-4 sm:h-[64px] sm:px-8 lg:px-12">
           <nav className="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
-            <a className="nav-link" href="#collection">Collection</a>
+            <a className="nav-link" href="#collection">Hoodies</a>
+            <a className="nav-link" href="/tshirts">T-Shirts</a>
             <a className="nav-link" href="#story">The Studio</a>
-            <a className="nav-link" href="#service">Service</a>
+            <a className="nav-link" href="/support">Support</a>
           </nav>
           <button className="grid size-7 place-items-center md:hidden" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle menu"><MenuIcon /></button>
           <a className="absolute left-1/2 -translate-x-1/2 text-[16px] font-black tracking-[-0.08em] sm:text-[19px]" href="#top">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[7px]">®</sup></a>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
             <button className="grid size-7 place-items-center" onClick={() => setSearchOpen(true)} aria-label="Search collection"><SearchIcon /></button>
+            <button className="hidden size-7 place-items-center sm:grid" onClick={() => window.location.assign('/account')} aria-label="Saved pieces"><HeartIcon filled={wishlistedIds.length > 0} /></button>
             <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.1em]" onClick={() => setBagOpen(true)} aria-label="Open shopping bag"><span className="hidden sm:inline">Bag</span><span className="grid size-7 place-items-center"><BagIcon /></span><span>({cartCount})</span></button>
           </div>
         </div>
-        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Collection</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#service">Service</a></nav>}
+        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Hoodies</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</a></nav>}
       </header>
 
       <section id="top" data-brand-landing className="relative grid h-[100svh] min-h-[580px] place-items-center overflow-hidden bg-[#f8f8f8] text-black">
@@ -189,11 +247,12 @@ export default function Home() {
           <p className="max-w-xs text-[12px] leading-relaxed text-black/55">An archive-inspired pair of zip hoodies in black and brown. Nothing unnecessary. Everything intentional.</p>
         </div>
         <div data-products className="grid gap-x-5 gap-y-11 md:grid-cols-2 md:gap-x-6">
-          {products.map((product, index) => <article data-product-card key={product.id} className="group">
+          {products.map((product, index) => <article data-product-card key={product.id} className="group" onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHoveredProductId(product.id); }} onPointerLeave={() => setHoveredProductId(null)} onPointerDown={(event) => { if (event.pointerType === 'touch') setHoveredProductId((current) => current === product.id ? null : product.id); }} onFocus={() => setHoveredProductId(product.id)} onBlur={() => setHoveredProductId(null)}>
             <div className="relative aspect-[4/5] overflow-hidden bg-black/[.045] md:aspect-[4/4.15]">
-              <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain translate-y-[7%] scale-[1.1] transition duration-700 ease-out group-hover:scale-[1.13]" />
+              {hoveredProductId === product.id && product.hoverVideo ? <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline preload="metadata" aria-label={`${product.name} construction video`} /> : hoveredProductId === product.id && product.hoverImage ? <Image src={product.hoverImage} alt={`${product.name} alternate view`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /> : <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain transition duration-700 ease-out group-hover:scale-[1.025]" />}
               <div className="absolute left-4 top-4 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / LIMITED</div>
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>SOLD OUT</span></div>
+              <button className="absolute right-4 top-3 grid size-8 place-items-center rounded-full bg-white/90 transition hover:bg-black hover:text-white" onClick={() => toggleWishlist(product)} aria-label={`Save ${product.name}`} aria-pressed={wishlistedIds.includes(product.id)}><HeartIcon filled={wishlistedIds.includes(product.id)} /></button>
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>{hoveredProductId === product.id ? 'VIEWING DETAIL' : 'SOLD OUT'}</span></div>
             </div>
             <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.color} / French Terry</p></div><p className="text-[12px] font-bold">${product.price}.00</p></div>
           </article>)}
