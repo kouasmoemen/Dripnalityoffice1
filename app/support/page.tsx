@@ -7,8 +7,8 @@ import { supabase } from '../../lib/supabase';
 
 const faqs = [
   ['Where is my order?', 'When a drop ships, we send a confirmation email with tracking information. Limited releases may need up to three business days for final quality control.'],
-  ['Do you ship worldwide?', 'Yes. DRIPNALITY ships internationally. Available delivery options and final costs are shown at checkout for your destination.'],
-  ['What is your returns policy?', 'Unworn items in their original condition may be requested for return within 14 days of delivery. Archive and final-sale pieces are not eligible for return.'],
+  ['Where do you ship?', 'DRIPNALITY currently delivers only within the full territory of the Tunisian Republic. Delivery options and final costs are shown at checkout.'],
+  ['What is your returns policy?', 'A return request for an unworn item in its original condition must be submitted within 24 hours of delivery. Archive and final-sale pieces are not eligible for return.'],
   ['How do I get early access?', 'Create a DRIPNALITY account and join the mailing list. Confirmed members are notified before a new drop goes live.'],
 ];
 
@@ -25,17 +25,21 @@ export default function SupportPage() {
     setFormError('');
 
     const form = new FormData(event.currentTarget);
+    const name = String(form.get('name') ?? '');
+    const email = String(form.get('email') ?? '');
+    const subject = String(form.get('subject') ?? 'General enquiry');
+    const message = String(form.get('message') ?? '');
     const { data: { user } } = await supabase.auth.getUser();
-    const { error } = await supabase.from('support_inquiries').insert({
+    const [databaseResult, emailResult] = await Promise.all([
+      supabase.from('support_inquiries').insert({
       user_id: user?.id ?? null,
-      name: String(form.get('name') ?? ''),
-      email: String(form.get('email') ?? ''),
-      subject: String(form.get('subject') ?? 'General enquiry'),
-      message: String(form.get('message') ?? ''),
-    });
+      name, email, subject, message,
+      }),
+      fetch('/api/support', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, email, subject, message }) }),
+    ]);
 
-    if (error) {
-      setFormError('Your message could not be sent yet. Please email support@dripnality.com.');
+    if (databaseResult.error || !emailResult.ok) {
+      setFormError('Your message could not be sent yet. Please email studiodepthx@gmail.com.');
     } else {
       setSent(true);
       event.currentTarget.reset();
@@ -94,7 +98,7 @@ export default function SupportPage() {
       </section>
 
       <section className="mx-auto grid max-w-[1400px] border-t border-black/10 md:grid-cols-3">
-        <div className="border-b border-black/10 p-8 md:border-b-0 md:border-r lg:p-12"><p className="eyebrow">01</p><h3 className="mt-14 text-[12px] font-bold uppercase">Worldwide delivery</h3><p className="mt-3 text-[11px] leading-relaxed text-black/60">Tracked delivery from our studio to your door.</p></div>
+        <div className="border-b border-black/10 p-8 md:border-b-0 md:border-r lg:p-12"><p className="eyebrow">01</p><h3 className="mt-14 text-[12px] font-bold uppercase">Tunisia delivery</h3><p className="mt-3 text-[11px] leading-relaxed text-black/60">Tracked delivery across the full territory of the Tunisian Republic.</p></div>
         <div className="border-b border-black/10 p-8 md:border-b-0 md:border-r lg:p-12"><p className="eyebrow">02</p><h3 className="mt-14 text-[12px] font-bold uppercase">Drop access</h3><p className="mt-3 text-[11px] leading-relaxed text-black/60">Create an account for release updates and member access.</p></div>
         <div className="p-8 lg:p-12"><p className="eyebrow">03</p><h3 className="mt-14 text-[12px] font-bold uppercase">Studio contact</h3><a className="mt-3 block text-[11px] underline underline-offset-4" href="mailto:support@dripnality.com">support@dripnality.com</a></div>
       </section>
