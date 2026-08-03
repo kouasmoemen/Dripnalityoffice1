@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from,
-      to: ['studiodepthx@gmail.com'],
+      to: ['studiodepthx@gmail.com', 'Dripnality@gmail.com'],
       reply_to: email,
       subject: `[DRIPNALITY Support] ${subject}`,
       html: `<h2>New DRIPNALITY support inquiry</h2><p><strong>From:</strong> ${escapeHtml(name)} (${escapeHtml(email)})</p><p><strong>Subject:</strong> ${escapeHtml(subject)}</p><hr><p style="white-space:pre-wrap">${escapeHtml(message)}</p>`,

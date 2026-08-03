@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import CookieConsent from '../components/CookieConsent';
+import DropCountdown from '../components/DropCountdown';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dripnality.com';
 
@@ -27,8 +29,9 @@ const structuredData = {
       name: 'DRIPNALITY Drop 01 hoodies',
       numberOfItems: 2,
       itemListElement: [
-        { '@type': 'Product', position: 1, name: 'Black Signature Zip Hoodie', color: 'Black', category: 'Hoodies', image: `${siteUrl}/hoodie-black-artwork.jpg`, offers: { '@type': 'Offer', price: '145.00', priceCurrency: 'USD', availability: 'https://schema.org/SoldOut' } },
-        { '@type': 'Product', position: 2, name: 'Brown Archive Zip Hoodie', color: 'Brown', category: 'Hoodies', image: `${siteUrl}/hoodie-brown-artwork.jpg`, offers: { '@type': 'Offer', price: '155.00', priceCurrency: 'USD', availability: 'https://schema.org/SoldOut' } },
+        { '@type': 'Product', position: 1, name: 'Black Signature Zip Hoodie', sku: 'DRP-HZ-001', color: 'Black', category: 'Hoodies', image: `${siteUrl}/ds%20black1.jpg`, offers: { '@type': 'Offer', price: '100.00', priceCurrency: 'TND', availability: 'https://schema.org/SoldOut' } },
+        { '@type': 'Product', position: 2, name: 'Brown Archive Zip Hoodie', sku: 'DRP-HZ-002', color: 'Brown', category: 'Hoodies', image: `${siteUrl}/ds%20brown1.jpg`, offers: { '@type': 'Offer', price: '100.00', priceCurrency: 'TND', availability: 'https://schema.org/SoldOut' } },
+        { '@type': 'Product', position: 3, name: 'Dripnality’s Oversized Multi-Balaclavas White T-Shirt', sku: 'DRP-TS-003', color: 'White', category: 'T-Shirts', image: `${siteUrl}/tshirt-drop/T12.jpeg`, offers: { '@type': 'Offer', price: '60.00', priceCurrency: 'TND', availability: 'https://schema.org/InStock', url: `${siteUrl}/tshirts/drp-ts-003` } },
       ],
     },
   ],
@@ -62,5 +65,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /></body></html>;
+  return <html lang="en"><body>{children}<DropCountdown /><CookieConsent /><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} /></body></html>;
 }

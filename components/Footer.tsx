@@ -1,8 +1,8 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '../lib/supabase';
-import { truncate } from 'fs';
 
 export default function Footer() {
   const [email, setEmail] = useState('');
@@ -54,8 +54,8 @@ export default function Footer() {
             {submitted && <p className="mt-3 text-[10px] text-white/60">YOU ARE ON THE LIST.</p>}
             {error && <p className="mt-3 text-[10px] leading-relaxed text-red-200">Please try again shortly.</p>}
           </div>
-          <div><p className="footer-title">Client service</p><div className="footer-links"><a href="/support">Shipping & Returns</a><a href="/support">Size Guide</a><a href="/support">Track Order</a><a href="/account">My Account</a></div></div>
-          <div><p className="footer-title">Follow the studio</p><div className="footer-links"><a href="https://www.instagram.com/dripnality" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.tiktok.com/@dripnality" target="_blank" rel="noreferrer">TikTok</a><a href="/tshirts">T-Shirts</a><a href="/account">Account & Early Access</a></div></div>
+          <div><p className="footer-title">Client service</p><div className="footer-links"><Link href="/support">Shipping & Returns</Link><Link href="/support">Size Guide</Link><Link href="/support">Track Order</Link><Link href="/account">My Account</Link></div></div>
+          <div><p className="footer-title">Follow the studio</p><div className="footer-links"><a href="https://www.instagram.com/dripnality" target="_blank" rel="noreferrer">Instagram</a><a href="https://www.tiktok.com/@dripnality" target="_blank" rel="noreferrer">TikTok</a><Link href="/tshirts">T-Shirts</Link><Link href="/account">Account & Early Access</Link></div></div>
         </div>
         <div className="flex flex-col gap-4 pt-6 text-[9px] font-bold tracking-[0.1em] text-white/45 sm:flex-row sm:items-center sm:justify-between"><span>© 2026 DRIPNALITY STUDIO</span><span>DESIGNED WITH PURPOSE.</span></div>
       </div>

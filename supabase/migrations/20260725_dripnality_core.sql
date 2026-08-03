@@ -39,7 +39,7 @@ create table public.products (
   name text not null,
   description text,
   price_cents integer not null check (price_cents >= 0),
-  currency text not null default 'USD' check (char_length(currency) = 3),
+  currency text not null default 'DT' check (char_length(currency) = 3),
   color text,
   category text not null default 'hoodies',
   cover_image text,
@@ -261,6 +261,3 @@ on conflict (slug) do update set
   hover_video = excluded.hover_video,
   gallery = excluded.gallery,
   updated_at = now();
-
--- Assign the first administrator manually after creating your account:
--- update public.profiles set role = 'admin' where email = 'your-admin-email@example.com';

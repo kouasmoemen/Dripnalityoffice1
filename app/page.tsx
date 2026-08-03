@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -8,6 +9,7 @@ import { useGSAP } from '@gsap/react';
 import QuickView, { Product } from '../components/QuickView';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
+import { tshirtGallery, tshirtProduct } from '../lib/tshirt';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -15,28 +17,61 @@ const defaultProducts: Product[] = [
   {
     id: 'black-signature-zip',
     name: 'Black Signature Zip Hoodie',
-    price: 145,
+    price: 100,
     color: 'Black',
     image: '/hoodie-black-artwork.jpg',
+    listingImage: '/ds black1.jpg',
     hoverImage: '/ds black1.jpg',
     gallery: ['/hoodie-black-artwork.jpg', '/don1black.png', '/ds black1.jpg', '/ds black2.jpg', '/ds black3.jpg', '/ds black4.jpg', '/ds black5.jpg', '/ds black6.jpg', '/ds black7.jpg', '/ds black8.jpg'],
     description: 'Heavyweight French terry zip hoodie with a structured double-layered hood, custom hardware and a washed black finish.',
     soldOut: true,
+    sizes: ['S', 'M', 'L'],
+    serial: 'DRP-HZ-001',
   },
   {
     id: 'brown-archive-zip',
     name: 'Brown Archive Zip Hoodie',
-    price: 155,
+    price: 100,
     color: 'Brown',
     image: '/hoodie-brown-artwork.jpg',
+    listingImage: '/ds brown1.jpg',
     hoverVideo: '/vid brown1.mp4',
     gallery: ['/hoodie-brown-artwork.jpg', '/don2brown.png', '/ds brown1.jpg', '/ds brown2.jpg', '/ds brown3.jpg', '/ds brown4.jpg', '/ds brown5.jpg', '/ds brown6.jpg', '/ds brown7.jpg', '/ds brown8.jpg'],
     description: 'Pigment-dyed archive zip hoodie cut from dense French terry, finished with an intentionally lived-in surface.',
     soldOut: true,
+    sizes: ['S', 'M', 'L'],
+    serial: 'DRP-HZ-002',
   },
 ];
 
+const tshirtSearchProduct: Product = {
+  id: tshirtProduct.id,
+  name: tshirtProduct.name,
+  price: tshirtProduct.price,
+  color: 'White',
+  image: tshirtProduct.cover,
+  gallery: tshirtGallery,
+  description: 'An oversized white T-shirt from the DRIPNALITY Multi-Balaclavas release.',
+  soldOut: false,
+  sizes: [...tshirtProduct.sizes],
+  serial: tshirtProduct.serial,
+};
+
 type CartItem = Product & { size: string; quantity: number };
+
+const normalizeProduct = (product: Product): Product => ({
+  ...product,
+  name: product.name?.trim() || 'Untitled piece',
+  color: product.color?.trim() || 'Archive',
+});
+
+const normalizeSearch = (value: string) => value.toLowerCase().replace(/[\s-]+/g, '');
+
+const matchesSearch = (product: Product, query: string) => {
+  const searchableValues = [product.name, product.color, product.serial];
+  if (product.id === tshirtProduct.id) searchableValues.push('tshirt', 't-shirts', 'tee shirt', 'تيشرت', 'تي شيرت');
+  return searchableValues.some((value) => value && normalizeSearch(value).includes(query));
+};
 
 function SearchIcon() {
   return <svg className="h-[17px] w-[17px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.1" /><path d="m15.4 15.4 4.1 4.1" /></svg>;
@@ -72,33 +107,45 @@ export default function Home() {
 
   useEffect(() => {
     const loadCatalog = async () => {
-      const { data } = await supabase
-        .from('products')
-        .select('slug, name, price_cents, color, cover_image, hover_image, hover_video, gallery, description, is_sold_out, inventory')
-        .eq('is_published', true)
-        .order('sort_order');
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('slug, name, price_cents, color, cover_image, hover_image, hover_video, gallery, description, is_sold_out, inventory')
+          .eq('is_published', true)
+          .eq('category', 'hoodies')
+          .order('sort_order');
 
-      if (!data?.length) return;
+        if (error || !data?.length) {
+          setCatalogProducts(defaultProducts.map(normalizeProduct));
+          return;
+        }
 
-      const liveProducts = data.map((item) => {
-        const databaseGallery = Array.isArray(item.gallery) ? item.gallery.filter((image): image is string => typeof image === 'string') : [];
-        const originalProduct = defaultProducts.find((product) => product.id === item.slug);
-        const gallery = databaseGallery.length >= 6 ? databaseGallery : originalProduct?.gallery || databaseGallery;
-        const image = item.cover_image || gallery[0] || originalProduct?.image || '/hoodie-black-artwork.jpg';
-        return {
-          id: item.slug,
-          name: item.name,
-          price: item.price_cents / 100,
-          color: item.color || 'Archive',
-          image,
-          hoverImage: item.hover_image || undefined,
-          hoverVideo: item.hover_video || undefined,
-          gallery: gallery.length ? gallery : [image],
-          description: item.description || 'A limited DRIPNALITY archive piece.',
-          soldOut: item.is_sold_out || item.inventory < 1,
-        } satisfies Product;
-      });
-      setCatalogProducts(liveProducts);
+        const liveProducts = data.map((item) => {
+          const databaseGallery = Array.isArray(item.gallery) ? item.gallery.filter((image): image is string => typeof image === 'string') : [];
+          const originalProduct = defaultProducts.find((product) => product.id === item.slug);
+          const gallery = databaseGallery.length >= 6 ? databaseGallery : originalProduct?.gallery || databaseGallery;
+          const image = item.cover_image || gallery[0] || originalProduct?.image || '/hoodie-black-artwork.jpg';
+          return normalizeProduct({
+            id: item.slug,
+            name: item.name,
+            price: originalProduct?.price ?? item.price_cents / 100,
+            color: item.color || 'Archive',
+            image,
+            listingImage: originalProduct?.listingImage || image,
+            hoverImage: item.hover_image || undefined,
+            hoverVideo: item.hover_video || undefined,
+            gallery: gallery.length ? gallery : [image],
+            description: item.description || 'A limited DRIPNALITY archive piece.',
+            soldOut: item.is_sold_out || item.inventory < 1,
+            sizes: originalProduct?.sizes,
+            serial: originalProduct?.serial,
+          });
+        });
+
+        setCatalogProducts(liveProducts.length ? liveProducts : defaultProducts.map(normalizeProduct));
+      } catch {
+        setCatalogProducts(defaultProducts.map(normalizeProduct));
+      }
     };
 
     loadCatalog();
@@ -109,18 +156,28 @@ export default function Home() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { data: savedRows, error: savedError } = await supabase
         .from('wishlist_items')
-        .select('products!inner(slug)')
+        .select('product_id')
         .eq('user_id', user.id);
 
-      if (data) {
-        const ids = data.flatMap((item) => {
-          const product = item.products as unknown as { slug?: string } | { slug?: string }[] | null;
-          return Array.isArray(product) ? product.map((entry) => entry.slug).filter((slug): slug is string => Boolean(slug)) : product?.slug ? [product.slug] : [];
-        });
-        setWishlistedIds(ids);
+      if (savedError || !savedRows?.length) {
+        setWishlistedIds([]);
+        return;
       }
+
+      const productIds = savedRows.map((item) => item.product_id).filter(Boolean);
+      const { data: productRows, error: productError } = await supabase
+        .from('products')
+        .select('slug')
+        .in('id', productIds);
+
+      if (productError) {
+        setWishlistedIds([]);
+        return;
+      }
+
+      setWishlistedIds((productRows ?? []).map((item) => item.slug).filter(Boolean));
     };
 
     loadWishlist();
@@ -221,7 +278,10 @@ export default function Home() {
     }
 
     const isSaved = wishlistedIds.includes(product.id);
-    setWishlistedIds((current) => isSaved ? current.filter((id) => id !== product.id) : [...current, product.id]);
+    setWishlistedIds((current) => {
+      if (isSaved) return current.filter((id) => id !== product.id);
+      return current.includes(product.id) ? current : [...current, product.id];
+    });
 
     const { data: storedProduct, error: productError } = await supabase.from('products').select('id').eq('slug', product.id).maybeSingle();
     if (productError || !storedProduct) {
@@ -240,7 +300,11 @@ export default function Home() {
 
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
   const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-  const results = catalogProducts.filter((product) => product.name.toLowerCase().includes(query.trim().toLowerCase()));
+  const normalizedCatalogProducts = catalogProducts.map(normalizeProduct);
+  const searchTerm = normalizeSearch(query.trim());
+  const results = searchTerm
+    ? [tshirtSearchProduct, ...normalizedCatalogProducts].filter((product) => matchesSearch(product, searchTerm))
+    : [];
 
   return (
     <main ref={pageRef} className="min-h-screen overflow-x-hidden bg-white text-black">
@@ -248,7 +312,7 @@ export default function Home() {
         <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between px-4 sm:h-[64px] sm:px-8 lg:px-12">
           <nav className="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
             <a className="nav-link" href="#collection">Hoodies</a>
-            <a className="nav-link" href="/tshirts">T-Shirts</a>
+            <Link className="nav-link" href="/tshirts">T-Shirts</Link>
             <a className="nav-link" href="#story">The Studio</a>
             <a className="nav-link" href="/support">Support</a>
           </nav>
@@ -261,7 +325,7 @@ export default function Home() {
             <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.1em]" onClick={() => setBagOpen(true)} aria-label="Open shopping bag"><span className="hidden sm:inline">Bag</span><span className="grid size-7 place-items-center"><BagIcon /></span><span>({cartCount})</span></button>
           </div>
         </div>
-        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Hoodies</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</a><a onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</a></nav>}
+        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Hoodies</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</Link><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</Link></nav>}
       </header>
 
       <section id="top" data-brand-landing className="relative grid h-[100svh] min-h-[580px] place-items-center overflow-hidden bg-[#f8f8f8] text-black">
@@ -289,12 +353,12 @@ export default function Home() {
         <div data-products className="grid gap-x-5 gap-y-11 md:grid-cols-2 md:gap-x-6">
           {catalogProducts.map((product, index) => <article data-product-card key={product.id} className="group" onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHoveredProductId(product.id); }} onPointerLeave={() => setHoveredProductId(null)} onPointerDown={(event) => { if (event.pointerType === 'touch') setHoveredProductId((current) => current === product.id ? null : product.id); }} onFocus={() => setHoveredProductId(product.id)} onBlur={() => setHoveredProductId(null)}>
             <div className="relative aspect-[4/5] overflow-hidden bg-black/[.045] md:aspect-[4/4.15]">
-              {hoveredProductId === product.id && product.hoverVideo ? <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline preload="metadata" aria-label={`${product.name} construction video`} /> : hoveredProductId === product.id && product.hoverImage ? <Image src={product.hoverImage} alt={`${product.name} alternate view`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /> : <Image src={product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-contain transition duration-700 ease-out group-hover:scale-[1.025]" />}
+              {hoveredProductId === product.id && product.hoverVideo ? <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline preload="metadata" aria-label={`${product.name} construction video`} /> : hoveredProductId === product.id && product.hoverImage ? <Image src={product.hoverImage} alt={`${product.name} alternate view`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /> : <Image src={product.listingImage || product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]" />}
               <div className="absolute left-4 top-4 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / LIMITED</div>
               <button className="absolute right-4 top-3 grid size-8 place-items-center rounded-full bg-white/90 transition hover:bg-black hover:text-white" onClick={() => toggleWishlist(product)} aria-label={`Save ${product.name}`} aria-pressed={wishlistedIds.includes(product.id)}><HeartIcon filled={wishlistedIds.includes(product.id)} /></button>
               <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>{hoveredProductId === product.id ? 'VIEWING DETAIL' : 'SOLD OUT'}</span></div>
             </div>
-            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.color} / French Terry</p></div><p className="text-[12px] font-bold">${product.price}.00</p></div>
+            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.serial || product.color} / Sold out</p></div><p className="text-[12px] font-bold">{product.price} TND</p></div>
           </article>)}
         </div>
       </section>
@@ -318,7 +382,7 @@ export default function Home() {
 
       <Footer />
 
-      {searchOpen && <><button className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]" aria-label="Close search" onClick={() => { setSearchOpen(false); setQuery(''); }} /><section className="fixed inset-x-3 top-3 z-[51] mx-auto max-w-2xl border border-black/10 bg-white p-5 shadow-2xl sm:top-6 sm:p-7" role="dialog" aria-modal="true" aria-label="Search collection"><div className="flex items-center border-b border-black"><SearchIcon /><input autoFocus className="w-full border-0 bg-transparent px-3 py-3 text-xl font-medium outline-none placeholder:text-black/25 sm:text-2xl" placeholder="Search the collection" value={query} onChange={(event) => setQuery(event.target.value)} /><button className="px-1 text-[10px] font-bold tracking-[.12em]" onClick={() => { setSearchOpen(false); setQuery(''); }}>CLOSE</button></div>{query && <div className="mt-5 max-h-[55vh] overflow-y-auto">{results.length ? results.map((product) => <button className="flex w-full items-center gap-4 border-b border-black/10 py-3 text-left" key={product.id} onClick={() => { setSearchOpen(false); setSelectedProduct(product); }}><Image src={product.image} alt="" width={52} height={64} className="h-16 w-13 object-contain bg-black/[.04]" /><span className="flex-1"><b className="block text-[11px] uppercase">{product.name}</b><span className="mt-1 block text-[10px] text-black/50">${product.price}.00</span></span><span className="text-[11px]">↗</span></button>) : <p className="py-7 text-[12px] text-black/50">No products found.</p>}</div>}{!query && <p className="pt-5 text-[11px] text-black/45">Search the archive by product name or color.</p>}</section></>}
+      {searchOpen && <><button className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]" aria-label="Close search" onClick={() => { setSearchOpen(false); setQuery(''); }} /><section className="fixed inset-x-3 top-3 z-[51] mx-auto max-w-2xl border border-black/10 bg-white p-5 shadow-2xl sm:top-6 sm:p-7" role="dialog" aria-modal="true" aria-label="Search collection"><div className="flex items-center border-b border-black"><SearchIcon /><input autoFocus className="w-full border-0 bg-transparent px-3 py-3 text-xl font-medium outline-none placeholder:text-black/25 sm:text-2xl" placeholder="Search the collection" value={query} onChange={(event) => setQuery(event.target.value)} /><button className="px-1 text-[10px] font-bold tracking-[.12em]" onClick={() => { setSearchOpen(false); setQuery(''); }}>CLOSE</button></div>{query && <div className="mt-5 max-h-[55vh] overflow-y-auto">{results.length ? results.map((product) => <button className="flex w-full items-center gap-4 border-b border-black/10 py-3 text-left" key={product.id} onClick={() => { setSearchOpen(false); setQuery(''); if (product.id === tshirtProduct.id) { window.location.assign(`/tshirts/${tshirtProduct.id}`); return; } setSelectedProduct(product); }}><Image src={product.image} alt="" width={52} height={64} className="h-16 w-13 object-contain bg-black/[.04]" /><span className="flex-1"><b className="block text-[11px] uppercase">{product.name}</b><span className="mt-1 block text-[10px] text-black/50">{product.price} TND</span></span><span className="text-[11px]">↗</span></button>) : <p className="py-7 text-[12px] text-black/50">No products found.</p>}</div>}{!query && <p className="pt-5 text-[11px] text-black/45">Search the archive by product name or color.</p>}</section></>}
 
       {bagOpen && <><button className="fixed inset-0 z-40 bg-black/45" aria-label="Close bag" onClick={() => setBagOpen(false)} /><aside className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col bg-white"><div className="flex items-center justify-between border-b border-black/15 px-6 py-6"><h2 className="text-[13px] font-bold uppercase tracking-[0.08em]">Shopping Bag ({cartCount})</h2><button className="text-xl" onClick={() => setBagOpen(false)}>×</button></div><div className="flex-1 overflow-y-auto px-6">{cart.length ? cart.map((item) => <div className="grid grid-cols-[88px_1fr] gap-4 border-b border-black/10 py-5" key={`${item.id}-${item.size}`}><Image src={item.image} alt={item.name} width={88} height={112} className="h-28 w-[88px] object-contain bg-black/[.04]" /><div><button className="float-right text-lg text-black/45" onClick={() => changeQuantity(item.id, item.size, -item.quantity)}>×</button><h3 className="pr-4 text-[11px] font-bold uppercase leading-snug">{item.name}</h3><p className="mt-1 text-[10px] text-black/50">Size {item.size}</p><p className="mt-3 text-[11px] font-bold">${item.price}.00</p><div className="mt-3 flex w-20 items-center justify-between border border-black/15"><button className="size-7" onClick={() => changeQuantity(item.id, item.size, -1)}>−</button><span className="text-[10px]">{item.quantity}</span><button className="size-7" onClick={() => changeQuantity(item.id, item.size, 1)}>+</button></div></div></div>) : <div className="grid h-full place-items-center text-center"><p className="text-[12px] leading-relaxed text-black/50">Your bag is empty.<br />The next piece is waiting.</p></div>}</div><div className="border-t border-black/15 px-6 py-5"><div className="mb-2 flex justify-between text-[12px]"><span>Subtotal</span><b>${subtotal.toFixed(2)}</b></div><p className="mb-5 text-[9px] text-black/50">Taxes and shipping calculated at checkout.</p><button disabled={!cart.length} className="w-full bg-black px-5 py-4 text-[10px] font-bold tracking-[0.14em] text-white disabled:cursor-not-allowed disabled:opacity-30">SECURE CHECKOUT ↗</button></div></aside></>}
 

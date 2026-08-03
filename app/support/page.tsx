@@ -20,11 +20,12 @@ export default function SupportPage() {
 
   const submitInquiry = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formElement = event.currentTarget;
     setSending(true);
     setSent(false);
     setFormError('');
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
     const name = String(form.get('name') ?? '');
     const email = String(form.get('email') ?? '');
     const subject = String(form.get('subject') ?? 'General enquiry');
@@ -42,7 +43,7 @@ export default function SupportPage() {
       setFormError('Your message could not be sent yet. Please email studiodepthx@gmail.com.');
     } else {
       setSent(true);
-      event.currentTarget.reset();
+      formElement.reset();
     }
     setSending(false);
   };
