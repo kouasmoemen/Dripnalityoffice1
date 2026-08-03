@@ -10,52 +10,27 @@ import QuickView, { Product } from '../components/QuickView';
 import Footer from '../components/Footer';
 import { supabase } from '../lib/supabase';
 import { tshirtGallery, tshirtProduct } from '../lib/tshirt';
+import { hoodieProducts } from '../lib/hoodies';
+import { addTshirtToBag } from '../lib/commerce-client';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const defaultProducts: Product[] = [
-  {
-    id: 'black-signature-zip',
-    name: 'Black Signature Zip Hoodie',
-    price: 100,
-    color: 'Black',
-    image: '/hoodie-black-artwork.jpg',
-    listingImage: '/ds black1.jpg',
-    hoverImage: '/ds black1.jpg',
-    gallery: ['/hoodie-black-artwork.jpg', '/don1black.png', '/ds black1.jpg', '/ds black2.jpg', '/ds black3.jpg', '/ds black4.jpg', '/ds black5.jpg', '/ds black6.jpg', '/ds black7.jpg', '/ds black8.jpg'],
-    description: 'Heavyweight French terry zip hoodie with a structured double-layered hood, custom hardware and a washed black finish.',
-    soldOut: true,
-    sizes: ['S', 'M', 'L'],
-    serial: 'DRP-HZ-001',
-  },
-  {
-    id: 'brown-archive-zip',
-    name: 'Brown Archive Zip Hoodie',
-    price: 100,
-    color: 'Brown',
-    image: '/hoodie-brown-artwork.jpg',
-    listingImage: '/ds brown1.jpg',
-    hoverVideo: '/vid brown1.mp4',
-    gallery: ['/hoodie-brown-artwork.jpg', '/don2brown.png', '/ds brown1.jpg', '/ds brown2.jpg', '/ds brown3.jpg', '/ds brown4.jpg', '/ds brown5.jpg', '/ds brown6.jpg', '/ds brown7.jpg', '/ds brown8.jpg'],
-    description: 'Pigment-dyed archive zip hoodie cut from dense French terry, finished with an intentionally lived-in surface.',
-    soldOut: true,
-    sizes: ['S', 'M', 'L'],
-    serial: 'DRP-HZ-002',
-  },
-];
-
-const tshirtSearchProduct: Product = {
+const tshirtCatalogProduct: Product = {
   id: tshirtProduct.id,
   name: tshirtProduct.name,
   price: tshirtProduct.price,
   color: 'White',
   image: tshirtProduct.cover,
+  listingImage: tshirtProduct.cover,
+  hoverImage: tshirtGallery[0],
   gallery: tshirtGallery,
   description: 'An oversized white T-shirt from the DRIPNALITY Multi-Balaclavas release.',
   soldOut: false,
   sizes: [...tshirtProduct.sizes],
   serial: tshirtProduct.serial,
 };
+
+const defaultProducts: Product[] = [tshirtCatalogProduct];
 
 type CartItem = Product & { size: string; quantity: number };
 
@@ -112,7 +87,7 @@ export default function Home() {
           .from('products')
           .select('slug, name, price_cents, color, cover_image, hover_image, hover_video, gallery, description, is_sold_out, inventory')
           .eq('is_published', true)
-          .eq('category', 'hoodies')
+          .eq('category', 'tshirts')
           .order('sort_order');
 
         if (error || !data?.length) {
@@ -124,7 +99,7 @@ export default function Home() {
           const databaseGallery = Array.isArray(item.gallery) ? item.gallery.filter((image): image is string => typeof image === 'string') : [];
           const originalProduct = defaultProducts.find((product) => product.id === item.slug);
           const gallery = databaseGallery.length >= 6 ? databaseGallery : originalProduct?.gallery || databaseGallery;
-          const image = item.cover_image || gallery[0] || originalProduct?.image || '/hoodie-black-artwork.jpg';
+          const image = item.cover_image || gallery[0] || originalProduct?.image || tshirtProduct.cover;
           return normalizeProduct({
             id: item.slug,
             name: item.name,
@@ -254,6 +229,7 @@ export default function Home() {
   }, { scope: pageRef });
 
   const addToBag = (product: Product, size = 'M') => {
+    if (product.id === tshirtProduct.id && ['S', 'M', 'L'].includes(size)) addTshirtToBag(size as 'S' | 'M' | 'L');
     setCart((current) => {
       const existing = current.find((item) => item.id === product.id && item.size === size);
       if (existing) return current.map((item) => item === existing ? { ...item, quantity: item.quantity + 1 } : item);
@@ -302,17 +278,16 @@ export default function Home() {
   const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
   const normalizedCatalogProducts = catalogProducts.map(normalizeProduct);
   const searchTerm = normalizeSearch(query.trim());
-  const results = searchTerm
-    ? [tshirtSearchProduct, ...normalizedCatalogProducts].filter((product) => matchesSearch(product, searchTerm))
-    : [];
+  const searchCatalog = [...normalizedCatalogProducts, ...hoodieProducts.map(normalizeProduct).filter((hoodie) => !normalizedCatalogProducts.some((product) => product.id === hoodie.id))];
+  const results = searchTerm ? searchCatalog.filter((product) => matchesSearch(product, searchTerm)) : [];
 
   return (
     <main ref={pageRef} className="min-h-screen overflow-x-hidden bg-white text-black">
       <header data-nav className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between px-4 sm:h-[64px] sm:px-8 lg:px-12">
           <nav className="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
-            <a className="nav-link" href="#collection">Hoodies</a>
-            <Link className="nav-link" href="/tshirts">T-Shirts</Link>
+            <a className="nav-link" href="#collection">T-Shirts</a>
+            <Link className="nav-link" href="/tshirts">Hoodies</Link>
             <a className="nav-link" href="#story">The Studio</a>
             <a className="nav-link" href="/support">Support</a>
           </nav>
@@ -325,7 +300,7 @@ export default function Home() {
             <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.1em]" onClick={() => setBagOpen(true)} aria-label="Open shopping bag"><span className="hidden sm:inline">Bag</span><span className="grid size-7 place-items-center"><BagIcon /></span><span>({cartCount})</span></button>
           </div>
         </div>
-        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Hoodies</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</Link><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</Link></nav>}
+        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">T-Shirts</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">Hoodies</Link><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</Link></nav>}
       </header>
 
       <section id="top" data-brand-landing className="relative grid h-[100svh] min-h-[580px] place-items-center overflow-hidden bg-[#f8f8f8] text-black">
@@ -338,27 +313,27 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/15" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] bg-[size:52px_52px] opacity-30" />
         <div className="relative z-10 mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12 lg:pb-16">
-          <p data-hero-eyebrow className="mb-5 text-[9px] font-bold tracking-[0.27em] text-white/60">DRIPNALITY / DROP 01</p>
+          <p data-hero-eyebrow className="mb-5 text-[9px] font-bold tracking-[0.27em] text-white/60">DRIPNALITY / DROP 02</p>
           <h1 data-hero-title className="max-w-4xl text-[clamp(3rem,7.4vw,7.5rem)] font-black leading-[.82] tracking-[-.09em]">THE QUIET<br /><span className="font-serif font-normal italic tracking-[-.11em]">statement.</span></h1>
-          <div className="mt-7 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"><p data-hero-copy className="max-w-[290px] text-[11px] leading-relaxed text-white/65">Two considered silhouettes. Built from heavyweight cotton. Made to become yours.</p><a data-hero-action className="button-light" href="#collection">View the archive <span>↘</span></a></div>
+          <div className="mt-7 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"><p data-hero-copy className="max-w-[290px] text-[11px] leading-relaxed text-white/65">One considered silhouette. Built from heavyweight cotton. Made to become yours.</p><a data-hero-action className="button-light" href="#collection">View the archive <span>↘</span></a></div>
         </div>
         <a className="absolute bottom-7 right-5 z-10 hidden items-center gap-3 text-[9px] font-bold tracking-[0.15em] sm:flex lg:right-12" href="#collection"><span className="h-px w-12 bg-white" />SCROLL TO EXPLORE</a>
       </section>
 
       <section id="collection" className="mx-auto max-w-[1120px] px-5 py-20 sm:px-8 lg:py-28">
         <div data-section-heading className="mb-16 flex flex-col justify-between gap-8 border-b border-black/15 pb-7 md:mb-20 md:flex-row md:items-end">
-          <div><p className="eyebrow">The collection / 02 pieces</p><h2 className="mt-4 text-[clamp(2.8rem,6vw,6.8rem)] font-black leading-[.83] tracking-[-.08em]">Essential<br /><span className="font-serif font-normal italic tracking-[-.11em]">by design.</span></h2></div>
-          <p className="max-w-xs text-[12px] leading-relaxed text-black/55">An archive-inspired pair of zip hoodies in black and brown. Nothing unnecessary. Everything intentional.</p>
+          <div><p className="eyebrow">The collection / Drop 02</p><h2 className="mt-4 text-[clamp(2.8rem,6vw,6.8rem)] font-black leading-[.83] tracking-[-.08em]">Essential<br /><span className="font-serif font-normal italic tracking-[-.11em]">by design.</span></h2></div>
+          <p className="max-w-xs text-[12px] leading-relaxed text-black/55">The Multi-Balaclavas oversized white T-shirt. Nothing unnecessary. Everything intentional.</p>
         </div>
         <div data-products className="grid gap-x-5 gap-y-11 md:grid-cols-2 md:gap-x-6">
           {catalogProducts.map((product, index) => <article data-product-card key={product.id} className="group" onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHoveredProductId(product.id); }} onPointerLeave={() => setHoveredProductId(null)} onPointerDown={(event) => { if (event.pointerType === 'touch') setHoveredProductId((current) => current === product.id ? null : product.id); }} onFocus={() => setHoveredProductId(product.id)} onBlur={() => setHoveredProductId(null)}>
             <div className="relative aspect-[4/5] overflow-hidden bg-black/[.045] md:aspect-[4/4.15]">
               {hoveredProductId === product.id && product.hoverVideo ? <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline preload="metadata" aria-label={`${product.name} construction video`} /> : hoveredProductId === product.id && product.hoverImage ? <Image src={product.hoverImage} alt={`${product.name} alternate view`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /> : <Image src={product.listingImage || product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]" />}
-              <div className="absolute left-4 top-4 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / LIMITED</div>
+              <div className="absolute left-4 top-4 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / {product.soldOut ? 'LIMITED' : 'AVAILABLE'}</div>
               <button className="absolute right-4 top-3 grid size-8 place-items-center rounded-full bg-white/90 transition hover:bg-black hover:text-white" onClick={() => toggleWishlist(product)} aria-label={`Save ${product.name}`} aria-pressed={wishlistedIds.includes(product.id)}><HeartIcon filled={wishlistedIds.includes(product.id)} /></button>
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>{hoveredProductId === product.id ? 'VIEWING DETAIL' : 'SOLD OUT'}</span></div>
+              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>{hoveredProductId === product.id ? 'VIEWING DETAIL' : product.soldOut ? 'SOLD OUT' : `${product.price} TND`}</span></div>
             </div>
-            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.serial || product.color} / Sold out</p></div><p className="text-[12px] font-bold">{product.price} TND</p></div>
+            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.serial || product.color} / {product.soldOut ? 'Sold out' : 'Available'}</p></div><p className="text-[12px] font-bold">{product.price} TND</p></div>
           </article>)}
         </div>
       </section>
@@ -384,7 +359,7 @@ export default function Home() {
 
       {searchOpen && <><button className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]" aria-label="Close search" onClick={() => { setSearchOpen(false); setQuery(''); }} /><section className="fixed inset-x-3 top-3 z-[51] mx-auto max-w-2xl border border-black/10 bg-white p-5 shadow-2xl sm:top-6 sm:p-7" role="dialog" aria-modal="true" aria-label="Search collection"><div className="flex items-center border-b border-black"><SearchIcon /><input autoFocus className="w-full border-0 bg-transparent px-3 py-3 text-xl font-medium outline-none placeholder:text-black/25 sm:text-2xl" placeholder="Search the collection" value={query} onChange={(event) => setQuery(event.target.value)} /><button className="px-1 text-[10px] font-bold tracking-[.12em]" onClick={() => { setSearchOpen(false); setQuery(''); }}>CLOSE</button></div>{query && <div className="mt-5 max-h-[55vh] overflow-y-auto">{results.length ? results.map((product) => <button className="flex w-full items-center gap-4 border-b border-black/10 py-3 text-left" key={product.id} onClick={() => { setSearchOpen(false); setQuery(''); if (product.id === tshirtProduct.id) { window.location.assign(`/tshirts/${tshirtProduct.id}`); return; } setSelectedProduct(product); }}><Image src={product.image} alt="" width={52} height={64} className="h-16 w-13 object-contain bg-black/[.04]" /><span className="flex-1"><b className="block text-[11px] uppercase">{product.name}</b><span className="mt-1 block text-[10px] text-black/50">{product.price} TND</span></span><span className="text-[11px]">↗</span></button>) : <p className="py-7 text-[12px] text-black/50">No products found.</p>}</div>}{!query && <p className="pt-5 text-[11px] text-black/45">Search the archive by product name or color.</p>}</section></>}
 
-      {bagOpen && <><button className="fixed inset-0 z-40 bg-black/45" aria-label="Close bag" onClick={() => setBagOpen(false)} /><aside className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col bg-white"><div className="flex items-center justify-between border-b border-black/15 px-6 py-6"><h2 className="text-[13px] font-bold uppercase tracking-[0.08em]">Shopping Bag ({cartCount})</h2><button className="text-xl" onClick={() => setBagOpen(false)}>×</button></div><div className="flex-1 overflow-y-auto px-6">{cart.length ? cart.map((item) => <div className="grid grid-cols-[88px_1fr] gap-4 border-b border-black/10 py-5" key={`${item.id}-${item.size}`}><Image src={item.image} alt={item.name} width={88} height={112} className="h-28 w-[88px] object-contain bg-black/[.04]" /><div><button className="float-right text-lg text-black/45" onClick={() => changeQuantity(item.id, item.size, -item.quantity)}>×</button><h3 className="pr-4 text-[11px] font-bold uppercase leading-snug">{item.name}</h3><p className="mt-1 text-[10px] text-black/50">Size {item.size}</p><p className="mt-3 text-[11px] font-bold">${item.price}.00</p><div className="mt-3 flex w-20 items-center justify-between border border-black/15"><button className="size-7" onClick={() => changeQuantity(item.id, item.size, -1)}>−</button><span className="text-[10px]">{item.quantity}</span><button className="size-7" onClick={() => changeQuantity(item.id, item.size, 1)}>+</button></div></div></div>) : <div className="grid h-full place-items-center text-center"><p className="text-[12px] leading-relaxed text-black/50">Your bag is empty.<br />The next piece is waiting.</p></div>}</div><div className="border-t border-black/15 px-6 py-5"><div className="mb-2 flex justify-between text-[12px]"><span>Subtotal</span><b>${subtotal.toFixed(2)}</b></div><p className="mb-5 text-[9px] text-black/50">Taxes and shipping calculated at checkout.</p><button disabled={!cart.length} className="w-full bg-black px-5 py-4 text-[10px] font-bold tracking-[0.14em] text-white disabled:cursor-not-allowed disabled:opacity-30">SECURE CHECKOUT ↗</button></div></aside></>}
+      {bagOpen && <><button className="fixed inset-0 z-40 bg-black/45" aria-label="Close bag" onClick={() => setBagOpen(false)} /><aside className="fixed right-0 top-0 z-50 flex h-full w-full max-w-[440px] flex-col bg-white"><div className="flex items-center justify-between border-b border-black/15 px-6 py-6"><h2 className="text-[13px] font-bold uppercase tracking-[0.08em]">Shopping Bag ({cartCount})</h2><button className="text-xl" onClick={() => setBagOpen(false)}>×</button></div><div className="flex-1 overflow-y-auto px-6">{cart.length ? cart.map((item) => <div className="grid grid-cols-[88px_1fr] gap-4 border-b border-black/10 py-5" key={`${item.id}-${item.size}`}><Image src={item.image} alt={item.name} width={88} height={112} className="h-28 w-[88px] object-contain bg-black/[.04]" /><div><button className="float-right text-lg text-black/45" onClick={() => changeQuantity(item.id, item.size, -item.quantity)}>×</button><h3 className="pr-4 text-[11px] font-bold uppercase leading-snug">{item.name}</h3><p className="mt-1 text-[10px] text-black/50">Size {item.size}</p><p className="mt-3 text-[11px] font-bold">{item.price} TND</p><div className="mt-3 flex w-20 items-center justify-between border border-black/15"><button className="size-7" onClick={() => changeQuantity(item.id, item.size, -1)}>−</button><span className="text-[10px]">{item.quantity}</span><button className="size-7" onClick={() => changeQuantity(item.id, item.size, 1)}>+</button></div></div></div>) : <div className="grid h-full place-items-center text-center"><p className="text-[12px] leading-relaxed text-black/50">Your bag is empty.<br />The next piece is waiting.</p></div>}</div><div className="border-t border-black/15 px-6 py-5"><div className="mb-2 flex justify-between text-[12px]"><span>Subtotal</span><b>{subtotal} TND</b></div><p className="mb-5 text-[9px] text-black/50">Taxes and shipping calculated at checkout.</p><button disabled={!cart.length} className="w-full bg-black px-5 py-4 text-[10px] font-bold tracking-[0.14em] text-white disabled:cursor-not-allowed disabled:opacity-30" onClick={() => { const tshirtItem = cart.find((item) => item.id === tshirtProduct.id); if (tshirtItem) window.location.assign(`/checkout?product=${tshirtProduct.id}&size=${tshirtItem.size}`); }}>SECURE CHECKOUT ↗</button></div></aside></>}
 
       <QuickView product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={addToBag} />
     </main>

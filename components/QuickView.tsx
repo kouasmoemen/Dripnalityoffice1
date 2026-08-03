@@ -78,7 +78,7 @@ export default function QuickView({ product, onClose, onAdd }: QuickViewProps) {
           </div>
         </div>
         <div className="flex min-h-[520px] flex-col p-7 sm:p-11 lg:p-14">
-          <p className="text-[9px] font-bold tracking-[0.2em] text-black/45">DRIPNALITY / DROP 01</p>
+          <p className="text-[9px] font-bold tracking-[0.2em] text-black/45">DRIPNALITY / {product.soldOut ? 'ARCHIVE' : 'CURRENT DROP'}</p>
           <h2 className="mt-4 text-[clamp(1.9rem,3vw,3rem)] font-black leading-[.92] tracking-[-.065em] uppercase">{product.name}</h2>
           <p className="mt-4 text-[15px] font-bold">{product.price} TND</p>
           <p className="mt-8 max-w-sm text-[12px] leading-relaxed text-black/58">{product.description}</p>
