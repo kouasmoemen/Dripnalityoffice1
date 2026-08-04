@@ -17,6 +17,7 @@ export default function TShirtsPage() {
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   const catalog = [
@@ -79,11 +80,11 @@ export default function TShirtsPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-black"><style jsx global>{`[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}.reveal-in{opacity:1!important;transform:translateY(0)!important}@media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}`}</style>
-      <header className="sticky top-0 z-30 border-b border-black/10 bg-[#f7f7f5]/95 backdrop-blur-md"><div className="mx-auto grid h-16 max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center px-3 sm:px-8 lg:px-12">
-          <nav className="hidden gap-6 md:flex"><Link href="/hoodies" className="text-[9px] font-bold tracking-[.14em]">HOODIES</Link><Link href="/support" className="text-[9px] font-bold tracking-[.14em]">SUPPORT</Link></nav>
-          <Link href="/" className="text-[15px] font-black tracking-[-.08em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">&reg;</sup></Link>
+      <header className="sticky top-0 z-30 border-b border-black/10 bg-[#f7f7f5]/95 backdrop-blur-md"><div className="relative mx-auto flex h-16 max-w-[1600px] items-center px-3 sm:px-8 lg:px-12">
+          <nav className="hidden gap-6 md:flex"><Link href="/hoodies" className="text-[9px] font-bold tracking-[.14em]">HOODIES</Link><Link href="/support" className="text-[9px] font-bold tracking-[.14em]">SUPPORT</Link></nav><button onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-controls="tshirts-mobile-menu" className="w-fit text-[9px] font-bold tracking-[.14em] md:hidden">MENU <span className="ml-1 text-base font-normal leading-none">{menuOpen ? '−' : '+'}</span></button>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[15px] font-black tracking-[-.08em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">&reg;</sup></Link>
           <div className="ml-auto flex items-center gap-1 sm:gap-2"><button onClick={() => { setQuery(''); setSearchOpen(true); }} className="grid size-8 place-items-center" aria-label="Search"><SearchIcon/></button><Link href="/wishlist" className="grid size-8 place-items-center" aria-label="Saved pieces"><HeartIcon/></Link><Link href="/account" className="grid size-8 place-items-center" aria-label="Account"><AccountIcon/></Link><Link href="/bag" className="flex items-center gap-1 text-[10px] font-bold tracking-[.13em]"><span className="hidden sm:inline">BAG</span><BagIcon/><span>({count})</span></Link></div>
-        </div>
+        </div>{menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-[#f7f7f5] px-5 py-5 shadow-xl md:hidden"><div className="mx-auto flex max-w-[1600px] flex-col"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="border-b border-black/10 py-4 text-[10px] font-bold tracking-[.15em]">HOODIES <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="border-b border-black/10 py-4 text-[10px] font-bold tracking-[.15em]">SUPPORT <span className="float-right">↗</span></Link></div></div>}
       </header>
 
       <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:px-12 lg:py-20">

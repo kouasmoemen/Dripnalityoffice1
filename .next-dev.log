@@ -259,3 +259,18 @@
  GET /hoodies 200 in 575ms (next.js: 162ms, application-code: 413ms)
  GET /hoodies 200 in 474ms (next.js: 96ms, application-code: 378ms)
  GET /manifest.webmanifest 200 in 98ms (next.js: 73ms, application-code: 26ms)
+ GET / 200 in 82ms (next.js: 36ms, application-code: 46ms)
+[browser] Detected `scroll-behavior: smooth` on the `<html>` element. To disable smooth scrolling during route transitions, add `data-scroll-behavior="smooth"` to your <html> element. Learn more: https://nextjs.org/docs/messages/missing-data-scroll-behavior
+ GET /manifest.webmanifest 200 in 22ms (next.js: 8ms, application-code: 14ms)
+ GET /tshirts 200 in 70ms (next.js: 32ms, application-code: 38ms)
+ GET /manifest.webmanifest 200 in 19ms (next.js: 7ms, application-code: 12ms)
+ GET / 200 in 45ms (next.js: 8ms, application-code: 36ms)
+ GET /manifest.webmanifest 200 in 19ms (next.js: 7ms, application-code: 12ms)
+ GET /tshirts 200 in 49ms (next.js: 10ms, application-code: 39ms)
+ GET /manifest.webmanifest 200 in 24ms (next.js: 7ms, application-code: 17ms)
+ GET / 200 in 48ms (next.js: 9ms, application-code: 39ms)
+ GET /manifest.webmanifest 200 in 23ms (next.js: 8ms, application-code: 14ms)
+✓ Compiled in 158ms
+ GET / 200 in 58ms (next.js: 10ms, application-code: 48ms)
+ GET /manifest.webmanifest 200 in 19ms (next.js: 7ms, application-code: 13ms)
+✓ Compiled in 102ms
