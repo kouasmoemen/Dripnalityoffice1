@@ -13,49 +13,19 @@ import { tshirtGallery, tshirtProduct } from '../lib/tshirt';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
-const defaultProducts: Product[] = [
-  {
-    id: 'black-signature-zip',
-    name: 'Black Signature Zip Hoodie',
-    price: 100,
-    color: 'Black',
-    image: '/hoodie-black-artwork.jpg',
-    listingImage: '/ds black1.jpg',
-    hoverImage: '/ds black1.jpg',
-    gallery: ['/hoodie-black-artwork.jpg', '/don1black.png', '/ds black1.jpg', '/ds black2.jpg', '/ds black3.jpg', '/ds black4.jpg', '/ds black5.jpg', '/ds black6.jpg', '/ds black7.jpg', '/ds black8.jpg'],
-    description: 'Heavyweight French terry zip hoodie with a structured double-layered hood, custom hardware and a washed black finish.',
-    soldOut: true,
-    sizes: ['S', 'M', 'L'],
-    serial: 'DRP-HZ-001',
-  },
-  {
-    id: 'brown-archive-zip',
-    name: 'Brown Archive Zip Hoodie',
-    price: 100,
-    color: 'Brown',
-    image: '/hoodie-brown-artwork.jpg',
-    listingImage: '/ds brown1.jpg',
-    hoverVideo: '/vid brown1.mp4',
-    gallery: ['/hoodie-brown-artwork.jpg', '/don2brown.png', '/ds brown1.jpg', '/ds brown2.jpg', '/ds brown3.jpg', '/ds brown4.jpg', '/ds brown5.jpg', '/ds brown6.jpg', '/ds brown7.jpg', '/ds brown8.jpg'],
-    description: 'Pigment-dyed archive zip hoodie cut from dense French terry, finished with an intentionally lived-in surface.',
-    soldOut: true,
-    sizes: ['S', 'M', 'L'],
-    serial: 'DRP-HZ-002',
-  },
-];
-
-const tshirtSearchProduct: Product = {
+const defaultProducts: Product[] = [{
   id: tshirtProduct.id,
   name: tshirtProduct.name,
   price: tshirtProduct.price,
   color: 'White',
   image: tshirtProduct.cover,
+  listingImage: tshirtProduct.cover,
   gallery: tshirtGallery,
   description: 'An oversized white T-shirt from the DRIPNALITY Multi-Balaclavas release.',
   soldOut: false,
   sizes: [...tshirtProduct.sizes],
   serial: tshirtProduct.serial,
-};
+}];
 
 type CartItem = Product & { size: string; quantity: number };
 
@@ -101,7 +71,6 @@ export default function Home() {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [hoveredProductId, setHoveredProductId] = useState<string | null>(null);
   const [wishlistedIds, setWishlistedIds] = useState<string[]>([]);
   const [catalogProducts, setCatalogProducts] = useState<Product[]>(defaultProducts);
 
@@ -112,7 +81,7 @@ export default function Home() {
           .from('products')
           .select('slug, name, price_cents, color, cover_image, hover_image, hover_video, gallery, description, is_sold_out, inventory')
           .eq('is_published', true)
-          .eq('category', 'hoodies')
+          .eq('category', 'tshirts')
           .order('sort_order');
 
         if (error || !data?.length) {
@@ -124,7 +93,7 @@ export default function Home() {
           const databaseGallery = Array.isArray(item.gallery) ? item.gallery.filter((image): image is string => typeof image === 'string') : [];
           const originalProduct = defaultProducts.find((product) => product.id === item.slug);
           const gallery = databaseGallery.length >= 6 ? databaseGallery : originalProduct?.gallery || databaseGallery;
-          const image = item.cover_image || gallery[0] || originalProduct?.image || '/hoodie-black-artwork.jpg';
+          const image = item.cover_image || gallery[0] || originalProduct?.image || tshirtProduct.cover;
           return normalizeProduct({
             id: item.slug,
             name: item.name,
@@ -303,7 +272,7 @@ export default function Home() {
   const normalizedCatalogProducts = catalogProducts.map(normalizeProduct);
   const searchTerm = normalizeSearch(query.trim());
   const results = searchTerm
-    ? [tshirtSearchProduct, ...normalizedCatalogProducts].filter((product) => matchesSearch(product, searchTerm))
+    ? normalizedCatalogProducts.filter((product) => matchesSearch(product, searchTerm))
     : [];
 
   return (
@@ -311,8 +280,8 @@ export default function Home() {
       <header data-nav className="fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-white/95 backdrop-blur-md">
         <div className="mx-auto flex h-[60px] max-w-[1600px] items-center justify-between px-4 sm:h-[64px] sm:px-8 lg:px-12">
           <nav className="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
-            <a className="nav-link" href="#collection">Hoodies</a>
             <Link className="nav-link" href="/tshirts">T-Shirts</Link>
+            <Link className="nav-link" href="/hoodies">Hoodies</Link>
             <a className="nav-link" href="#story">The Studio</a>
             <a className="nav-link" href="/support">Support</a>
           </nav>
@@ -325,7 +294,7 @@ export default function Home() {
             <button className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-[0.1em]" onClick={() => setBagOpen(true)} aria-label="Open shopping bag"><span className="hidden sm:inline">Bag</span><span className="grid size-7 place-items-center"><BagIcon /></span><span>({cartCount})</span></button>
           </div>
         </div>
-        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#collection">Hoodies</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</Link><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</Link></nav>}
+        {menuOpen && <nav className="border-t border-black/10 bg-white px-5 py-4 md:hidden"><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/tshirts">T-Shirts</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/hoodies">Hoodies</Link><a onClick={() => setMenuOpen(false)} className="mobile-link" href="#story">The Studio</a><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/support">Support</Link><Link onClick={() => setMenuOpen(false)} className="mobile-link" href="/account">Account</Link></nav>}
       </header>
 
       <section id="top" data-brand-landing className="relative grid h-[100svh] min-h-[580px] place-items-center overflow-hidden bg-[#f8f8f8] text-black">
@@ -334,12 +303,12 @@ export default function Home() {
       </section>
 
       <section id="hero" data-hero className="relative flex h-[78svh] min-h-[560px] items-end overflow-hidden bg-black text-white">
-        <div data-hero-image className="absolute inset-0"><Image src="/ds black1.jpg" alt="DRIPNALITY black hoodie editorial" fill priority sizes="100vw" className="object-cover object-[60%_center] opacity-50 grayscale" /></div>
+        <div data-hero-image className="absolute inset-0"><Image src={tshirtProduct.cover} alt="DRIPNALITY Multi-Balaclavas white T-shirt" fill priority sizes="100vw" className="object-cover object-center opacity-50 grayscale" /></div>
         <div className="absolute inset-0 bg-gradient-to-r from-black via-black/75 to-black/15" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.05)_1px,transparent_1px)] bg-[size:52px_52px] opacity-30" />
         <div className="relative z-10 mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12 lg:pb-16">
-          <p data-hero-eyebrow className="mb-5 text-[9px] font-bold tracking-[0.27em] text-white/60">DRIPNALITY / DROP 01</p>
-          <h1 data-hero-title className="max-w-4xl text-[clamp(3rem,7.4vw,7.5rem)] font-black leading-[.82] tracking-[-.09em]">THE QUIET<br /><span className="font-serif font-normal italic tracking-[-.11em]">statement.</span></h1>
+          <p data-hero-eyebrow className="mb-5 text-[9px] font-bold tracking-[0.27em] text-white/60">DRIPNALITY / DROP 02</p>
+          <h1 data-hero-title className="max-w-4xl text-[clamp(3rem,7.4vw,7.5rem)] font-black leading-[.82] tracking-[-.09em]">MULTI<br /><span className="font-serif font-normal italic tracking-[-.11em]">Balaclavas.</span></h1>
           <div className="mt-7 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between"><p data-hero-copy className="max-w-[290px] text-[11px] leading-relaxed text-white/65">Two considered silhouettes. Built from heavyweight cotton. Made to become yours.</p><a data-hero-action className="button-light" href="#collection">View the archive <span>↘</span></a></div>
         </div>
         <a className="absolute bottom-7 right-5 z-10 hidden items-center gap-3 text-[9px] font-bold tracking-[0.15em] sm:flex lg:right-12" href="#collection"><span className="h-px w-12 bg-white" />SCROLL TO EXPLORE</a>
@@ -347,18 +316,19 @@ export default function Home() {
 
       <section id="collection" className="mx-auto max-w-[1120px] px-5 py-20 sm:px-8 lg:py-28">
         <div data-section-heading className="mb-16 flex flex-col justify-between gap-8 border-b border-black/15 pb-7 md:mb-20 md:flex-row md:items-end">
-          <div><p className="eyebrow">The collection / 02 pieces</p><h2 className="mt-4 text-[clamp(2.8rem,6vw,6.8rem)] font-black leading-[.83] tracking-[-.08em]">Essential<br /><span className="font-serif font-normal italic tracking-[-.11em]">by design.</span></h2></div>
-          <p className="max-w-xs text-[12px] leading-relaxed text-black/55">An archive-inspired pair of zip hoodies in black and brown. Nothing unnecessary. Everything intentional.</p>
+          <div><p className="eyebrow">The collection / 01 piece</p><h2 className="mt-4 text-[clamp(2.8rem,6vw,6.8rem)] font-black leading-[.83] tracking-[-.08em]">New<br /><span className="font-serif font-normal italic tracking-[-.11em]">standard.</span></h2></div>
+          <p className="max-w-xs text-[12px] leading-relaxed text-black/55">The Multi-Balaclavas T-shirt leads the current release. One considered piece, made for everyday rotation.</p>
         </div>
-        <div data-products className="grid gap-x-5 gap-y-11 md:grid-cols-2 md:gap-x-6">
-          {catalogProducts.map((product, index) => <article data-product-card key={product.id} className="group" onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHoveredProductId(product.id); }} onPointerLeave={() => setHoveredProductId(null)} onPointerDown={(event) => { if (event.pointerType === 'touch') setHoveredProductId((current) => current === product.id ? null : product.id); }} onFocus={() => setHoveredProductId(product.id)} onBlur={() => setHoveredProductId(null)}>
-            <div className="relative aspect-[4/5] overflow-hidden bg-black/[.045] md:aspect-[4/4.15]">
-              {hoveredProductId === product.id && product.hoverVideo ? <video className="absolute inset-0 h-full w-full object-cover" src={product.hoverVideo} autoPlay loop muted playsInline preload="metadata" aria-label={`${product.name} construction video`} /> : hoveredProductId === product.id && product.hoverImage ? <Image src={product.hoverImage} alt={`${product.name} alternate view`} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover" /> : <Image src={product.listingImage || product.image} alt={product.name} fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]" />}
-              <div className="absolute left-4 top-4 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / LIMITED</div>
-              <button className="absolute right-4 top-3 grid size-8 place-items-center rounded-full bg-white/90 transition hover:bg-black hover:text-white" onClick={() => toggleWishlist(product)} aria-label={`Save ${product.name}`} aria-pressed={wishlistedIds.includes(product.id)}><HeartIcon filled={wishlistedIds.includes(product.id)} /></button>
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]"><button className="transition hover:opacity-45" onClick={() => setSelectedProduct(product)}>QUICK VIEW</button><span>{hoveredProductId === product.id ? 'VIEWING DETAIL' : 'SOLD OUT'}</span></div>
+        <div data-products className="grid max-w-[460px] gap-x-5 gap-y-11">
+          {catalogProducts.map((product, index) => <article data-product-card key={product.id} className="group">
+            <div className="relative aspect-[4/5] overflow-hidden bg-black/[.045]">
+              <Link href={`/tshirts/${tshirtProduct.id}`} className="absolute inset-0 z-0" aria-label={`View ${product.name} details`}>
+                <Image src={product.listingImage || product.image} alt={product.name} fill sizes="(max-width: 640px) 100vw, 460px" className="object-cover transition duration-700 ease-out group-hover:scale-[1.025]" />
+              </Link>
+              <div className="pointer-events-none absolute left-4 top-4 z-10 bg-white px-3 py-2 text-[9px] font-bold tracking-[0.14em]">0{index + 1} / NEW RELEASE</div>
+              <Link href={`/tshirts/${tshirtProduct.id}`} className="absolute inset-x-4 bottom-4 z-10 flex items-center justify-between bg-white/95 px-3 py-2.5 text-[9px] font-bold tracking-[0.13em]">VIEW PRODUCT <span>↗</span></Link>
             </div>
-            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.serial || product.color} / Sold out</p></div><p className="text-[12px] font-bold">{product.price} TND</p></div>
+            <div className="mt-4 flex items-start justify-between gap-4"><div><h3 className="text-[12px] font-bold uppercase tracking-[0.02em]">{product.name}</h3><p className="mt-1 text-[10px] text-black/50">{product.serial || product.color} / Available</p></div><div className="flex items-center gap-3"><button className="grid size-8 place-items-center rounded-full border border-black/15 transition hover:bg-black hover:text-white" onClick={() => toggleWishlist(product)} aria-label={`Save ${product.name}`} aria-pressed={wishlistedIds.includes(product.id)}><HeartIcon filled={wishlistedIds.includes(product.id)} /></button><p className="text-[12px] font-bold">{product.price} TND</p></div></div>
           </article>)}
         </div>
       </section>

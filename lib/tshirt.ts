@@ -8,4 +8,5 @@ export const tshirtProduct = {
   sizes: ['S', 'M', 'L'],
 } as const;
 
-export const tshirtGallery = Array.from({ length: 16 }, (_, index) => `/tshirt-drop/T${index}.jpeg`);
+// T0 is intentionally excluded from the public product story.
+export const tshirtGallery = Array.from({ length: 15 }, (_, index) => `/tshirt-drop/T${index + 1}.jpeg`);
