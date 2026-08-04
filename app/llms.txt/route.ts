@@ -9,7 +9,7 @@ export function GET() {
 - Website: ${siteUrl}
 - Instagram: https://www.instagram.com/dripnality
 - TikTok: https://www.tiktok.com/@dripnality
-- Current release: Drop 02, Dripnality's Oversized Multi-Balaclavas White T-Shirt (DRP-TS-003), available in S, M and L for 60 TND.
+- Current release: Drop 02, Dripnality's Oversized Multi-Balaclavas White T-Shirt (DRP-TS-003), available in S, M and L for 59 DNT plus 8 DNT delivery in Tunisia.
 - Archive: the black and brown Drop 01 zip hoodies are preserved as Sold Out / Archive Pieces.
 - Shipping: delivery is currently available only across the full territory of the Tunisian Republic.
 - Returns: return requests for unworn, original-condition items must be submitted within 24 hours of delivery. Archive and final-sale pieces are not eligible.
