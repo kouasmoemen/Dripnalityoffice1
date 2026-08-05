@@ -103,7 +103,7 @@ export default function TShirtsPage() {
             <h2 className="mt-4 text-[clamp(2.1rem,4vw,4rem)] font-black leading-[.85] tracking-[-.08em] uppercase">Oversized<br />Multi-Balaclavas<br />White T-Shirt</h2>
             <p className="mt-5 text-[14px] font-bold">59 DNT</p>
             <p className="mt-3 max-w-sm text-sm leading-6 text-black/55">A relaxed white silhouette designed for repeat wear. Available in S, M and L.</p>
-            <div className="mt-8 grid grid-cols-2 gap-2"><Link href={`/tshirts/${tshirtProduct.id}`} className="bg-black px-4 py-3.5 text-center text-[10px] font-bold uppercase tracking-[.14em] text-white">Product details</Link><button onClick={addToBag} className="border border-black/20 px-4 py-3.5 text-[10px] font-bold uppercase tracking-[.14em]">Add to bag</button></div>
+            <div className="mt-8 grid grid-cols-2 gap-2"><Link href={`/tshirts/${tshirtProduct.id}`} className="flex h-10 items-center justify-center border border-black/25 px-3 text-center text-[9px] font-medium uppercase tracking-[.12em] transition hover:border-black">Product details</Link><button onClick={addToBag} className="flex h-10 items-center justify-center border border-black px-3 text-[9px] font-medium uppercase tracking-[.12em] transition hover:bg-black hover:text-white">Add to bag</button></div>
             <button onClick={save} aria-pressed={saved} className="mt-4 inline-flex items-center gap-2 border-b border-black/25 pb-1 text-[10px] font-bold uppercase tracking-[.14em] transition hover:border-black">{saved ? '♥ Saved to archive' : '♡ Save to archive'}</button>
             {notice && <p role="status" className="mt-4 border-l-2 border-black pl-3 text-xs text-black/60">{notice}</p>}
           </div>
