@@ -131,16 +131,16 @@ export default function TShirtsPage() {
         {menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 py-3 text-black shadow-xl md:hidden"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="mobile-link">Archive <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="mobile-link">Support <span className="float-right">↗</span></Link></div>}
       </header>
 
-      <section className="relative isolate min-h-[100svh] overflow-hidden bg-black text-white">
+      <section className="relative isolate aspect-video min-h-[220px] overflow-hidden bg-black text-white">
         <Image src="/dont66.png" alt="DRIPNALITY campaign" fill priority sizes="100vw" className="object-cover object-center" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.34)_0%,rgba(0,0,0,.02)_46%,rgba(0,0,0,.56)_100%)]" />
-        <div className="relative mx-auto flex min-h-[100svh] max-w-[1920px] items-center justify-center px-5 sm:px-8 lg:px-12">
-          <motion.h1 style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="origin-center whitespace-nowrap text-center text-[clamp(3.5rem,13.2vw,15rem)] font-black leading-[.7] tracking-[-.13em] drop-shadow-[0_5px_25px_rgba(0,0,0,.35)]">
+        <div className="relative mx-auto flex aspect-video min-h-[220px] max-w-[1920px] items-center justify-center px-5 sm:px-8 lg:px-12">
+          <motion.h1 translate="no" style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="notranslate origin-center whitespace-nowrap text-center text-[clamp(2.1rem,10vw,15rem)] font-black leading-[.7] tracking-[-.13em] drop-shadow-[0_5px_25px_rgba(0,0,0,.35)]">
             DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span>
           </motion.h1>
-          <div className="absolute bottom-8 left-5 sm:bottom-12 sm:left-8 lg:bottom-14 lg:left-12">
+          <div className="absolute bottom-3 left-4 sm:bottom-8 sm:left-8 lg:bottom-14 lg:left-12">
             <p className="text-[9px] font-bold uppercase tracking-[.16em] text-white">New drop out now!</p>
-            <a href="#collection" className="mt-3 inline-flex h-10 min-w-[132px] items-center justify-between border border-white px-3 text-[8px] font-bold uppercase tracking-[.15em] text-white transition hover:bg-white hover:text-black">Shop all <span>→</span></a>
+            <a href="#collection" className="mt-2 inline-flex h-8 min-w-[112px] items-center justify-between border border-white px-2.5 text-[7px] font-bold uppercase tracking-[.15em] text-white transition hover:bg-white hover:text-black sm:mt-3 sm:h-10 sm:min-w-[132px] sm:px-3 sm:text-[8px]">Shop all <span>→</span></a>
           </div>
         </div>
       </section>
