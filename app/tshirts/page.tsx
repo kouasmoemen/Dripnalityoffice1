@@ -131,10 +131,10 @@ export default function TShirtsPage() {
         {menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 py-3 text-black shadow-xl md:hidden"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="mobile-link">Archive <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="mobile-link">Support <span className="float-right">↗</span></Link></div>}
       </header>
 
-      <section className="relative isolate aspect-video overflow-hidden bg-black text-white">
-        <Image src="/dont66.png" alt="DRIPNALITY campaign" fill priority sizes="100vw" className="object-cover object-center" />
+      <section className="relative isolate w-full h-[56.25vw] overflow-hidden bg-black text-white">
+        <Image src="/dont66.png" alt="DRIPNALITY campaign" fill priority sizes="100vw" className="object-cover object-top" />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.34)_0%,rgba(0,0,0,.02)_46%,rgba(0,0,0,.56)_100%)]" />
-        <div className="relative mx-auto flex aspect-video max-w-[1920px] items-center justify-center px-3 sm:px-5 md:px-8 lg:px-12">
+        <div className="relative mx-auto flex w-full h-full max-w-[1920px] items-center justify-center px-3 sm:px-5 md:px-8 lg:px-12">
           <motion.h1 translate="no" style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="notranslate origin-center whitespace-nowrap text-center text-[clamp(1.2rem,6vw,8rem)] font-black leading-[.7] tracking-[-.13em] drop-shadow-[0_5px_25px_rgba(0,0,0,.35)]">
             DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span>
           </motion.h1>
