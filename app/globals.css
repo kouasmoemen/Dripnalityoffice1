@@ -19,3 +19,77 @@ button { cursor: pointer; }
 .footer-links { margin-top: 24px; display: flex; flex-direction: column; gap: 14px; }
 .footer-links a { width: fit-content; color: rgba(255,255,255,.55); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; transition: color .2s ease; }
 .footer-links a:hover { color: #fff; }
+
+/* Compact Zara-inspired product presentation for the T-shirts collection. */
+#collection {
+  max-width: 1440px;
+}
+
+#collection > article {
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+#collection > article > a {
+  min-height: 410px;
+}
+
+#collection > article > div {
+  min-height: 460px;
+}
+
+#collection > article > div > div:last-child {
+  display: block;
+  width: min(100%, 320px);
+  padding-top: 2rem;
+}
+
+#collection > article > div > div:last-child > button:first-child,
+#collection > article > div > div:last-child > a {
+  display: flex;
+  width: 100%;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+}
+
+#collection > article > div > div:last-child > button:first-child {
+  background: #11110f;
+  padding-inline: 18px;
+  color: #fff;
+  letter-spacing: .15em;
+}
+
+#collection > article > div > div:last-child > button:first-child:hover {
+  background: #3b3a35;
+}
+
+#collection > article > div > div:last-child > a {
+  margin-top: 8px;
+  border: 1px solid rgba(17,17,15,.75);
+  padding-bottom: 0;
+  font-size: 9px;
+  letter-spacing: .15em;
+}
+
+#collection > article > div > div:last-child > a:hover {
+  background: #11110f;
+  color: #fff;
+  opacity: 1;
+}
+
+#collection > article > div > div:last-child > button[aria-pressed] {
+  margin-top: 14px;
+  font-size: 8px;
+}
+
+@media (min-width: 640px) {
+  #collection > article > a { min-height: 520px; }
+  #collection > article > div { min-height: 520px; }
+}
+
+@media (min-width: 1024px) {
+  #collection > article { grid-template-columns: minmax(0, .95fr) minmax(350px, .65fr); }
+  #collection > article > a { min-height: 590px; }
+  #collection > article > div { min-height: 590px; }
+}

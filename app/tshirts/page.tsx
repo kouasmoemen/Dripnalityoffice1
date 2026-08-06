@@ -1,5 +1,6 @@
 'use client';
 
+import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -7,41 +8,69 @@ import { useEffect, useState } from 'react';
 import Footer from '../../components/Footer';
 import { AccountIcon, BagIcon, HeartIcon, SearchIcon } from '../../components/StoreIcons';
 import { addTshirtToBag, bagCount, isProductSaved, setProductSaved } from '../../lib/commerce-client';
-import { supabase } from '../../lib/supabase';
 import { hoodies } from '../../lib/hoodies';
+import { supabase } from '../../lib/supabase';
 import { tshirtProduct } from '../../lib/tshirt';
 
 export default function TShirtsPage() {
   const router = useRouter();
+  const { scrollY } = useScroll();
+  const heroLogoScale = useTransform(scrollY, [0, 260], [1, 0.3]);
+  const heroLogoY = useTransform(scrollY, [0, 260], [0, -245]);
+  const heroLogoOpacity = useTransform(scrollY, [0, 200, 280], [1, 0.35, 0]);
+  const headerLogoOpacity = useTransform(scrollY, [0, 85, 165], [0, 0.4, 1]);
+  const headerLogoY = useTransform(scrollY, [0, 165], [-8, 0]);
   const [count, setCount] = useState(0);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [headerVisible, setHeaderVisible] = useState(false);
   const [query, setQuery] = useState('');
-
   const catalog = [
-    { id: tshirtProduct.id, href: `/tshirts/${tshirtProduct.id}`, name: tshirtProduct.name, detail: '59 DNT / T-SHIRT', search: `${tshirtProduct.name} white t-shirt oversized drp-ts-003` },
+    { id: tshirtProduct.id, href: `/tshirts/${tshirtProduct.id}`, name: tshirtProduct.name, detail: '59 TND / T-SHIRT', search: `${tshirtProduct.name} white t-shirt oversized drp-ts-003` },
     ...hoodies.map((hoodie) => ({ id: hoodie.id, href: `/hoodies/${hoodie.id}`, name: hoodie.name, detail: `ARCHIVE / ${hoodie.color.toUpperCase()}`, search: `${hoodie.name} ${hoodie.color} hoodie ${hoodie.serial}` })),
   ];
   const matches = catalog.filter((piece) => piece.search.toLowerCase().includes(query.trim().toLowerCase()));
 
   useEffect(() => {
     const refresh = () => setCount(bagCount());
-    const frame = window.requestAnimationFrame(() => {
+    const frame = requestAnimationFrame(() => {
       refresh();
       setSaved(isProductSaved(tshirtProduct.id));
     });
     window.addEventListener('dripnality:bag-updated', refresh);
     return () => {
-      window.cancelAnimationFrame(frame);
+      cancelAnimationFrame(frame);
       window.removeEventListener('dripnality:bag-updated', refresh);
     };
   }, []);
 
   useEffect(() => {
+    let frame = 0;
+    const updateHeader = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => setHeaderVisible(window.scrollY > 28));
+    };
+    updateHeader();
+    window.addEventListener('scroll', updateHeader, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', updateHeader);
+    };
+  }, []);
+
+  useEffect(() => {
     const items = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => { if (entry.isIntersecting) { entry.target.classList.add('reveal-in'); observer.unobserve(entry.target); } }), { threshold: 0.12 });
+    const observer = new IntersectionObserver(
+      (entries) => entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('reveal-in');
+          observer.unobserve(entry.target);
+        }
+      }),
+      { threshold: 0.1 },
+    );
     items.forEach((item) => observer.observe(item));
     return () => observer.disconnect();
   }, []);
@@ -79,40 +108,60 @@ export default function TShirtsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f7f5] text-black"><style jsx global>{`[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}.reveal-in{opacity:1!important;transform:translateY(0)!important}@media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}`}</style>
-      <header className="sticky top-0 z-30 border-b border-black/10 bg-[#f7f7f5]/95 backdrop-blur-md"><div className="relative mx-auto flex h-16 max-w-[1600px] items-center px-3 sm:px-8 lg:px-12">
-          <nav className="hidden gap-6 md:flex"><Link href="/hoodies" className="text-[9px] font-bold tracking-[.14em]">HOODIES</Link><Link href="/support" className="text-[9px] font-bold tracking-[.14em]">SUPPORT</Link></nav><button onClick={() => setMenuOpen((open) => !open)} aria-expanded={menuOpen} aria-controls="tshirts-mobile-menu" className="w-fit text-[9px] font-bold tracking-[.14em] md:hidden">MENU <span className="ml-1 text-base font-normal leading-none">{menuOpen ? '−' : '+'}</span></button>
-          <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[15px] font-black tracking-[-.08em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">&reg;</sup></Link>
-          <div className="ml-auto flex items-center gap-1 sm:gap-2"><button onClick={() => { setQuery(''); setSearchOpen(true); }} className="grid size-8 place-items-center" aria-label="Search"><SearchIcon/></button><Link href="/wishlist" className="grid size-8 place-items-center" aria-label="Saved pieces"><HeartIcon/></Link><Link href="/account" className="grid size-8 place-items-center" aria-label="Account"><AccountIcon/></Link><Link href="/bag" className="flex items-center gap-1 text-[10px] font-bold tracking-[.13em]"><span className="hidden sm:inline">BAG</span><BagIcon/><span>({count})</span></Link></div>
-        </div>{menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-[#f7f7f5] px-5 py-5 shadow-xl md:hidden"><div className="mx-auto flex max-w-[1600px] flex-col"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="border-b border-black/10 py-4 text-[10px] font-bold tracking-[.15em]">HOODIES <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="border-b border-black/10 py-4 text-[10px] font-bold tracking-[.15em]">SUPPORT <span className="float-right">↗</span></Link></div></div>}
+    <main className="min-h-screen bg-[#f4f3ef] text-[#11110f]"><style jsx global>{`[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .75s ease,transform .75s cubic-bezier(.22,1,.36,1)}.reveal-in{opacity:1!important;transform:translateY(0)!important}@media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}`}</style>
+      <header className={`fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-white text-black shadow-sm transition-[transform,opacity] duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${headerVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'}`}>
+        <div className="relative mx-auto flex h-12 max-w-[1920px] items-center px-5 sm:px-8 lg:px-12">
+          <nav className="hidden gap-8 md:flex">
+            <Link href="/hoodies" className="text-[9px] font-semibold uppercase tracking-[.16em] transition hover:opacity-50">Archive</Link>
+            <Link href="/support" className="text-[9px] font-semibold uppercase tracking-[.16em] transition hover:opacity-50">Support</Link>
+          </nav>
+          <button onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="tshirts-mobile-menu" className="inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[.16em] md:hidden">
+            <span className="grid gap-1" aria-hidden="true"><i className={`block h-px w-4 bg-current transition-transform ${menuOpen ? 'translate-y-[3px] rotate-45' : ''}`} /><i className={`block h-px w-4 bg-current transition-transform ${menuOpen ? '-translate-y-[2px] -rotate-45' : ''}`} /></span>Menu
+          </button>
+          <motion.div style={{ opacity: headerLogoOpacity, y: headerLogoY }} className="pointer-events-none absolute left-1/2 -translate-x-1/2">
+            <Link href="/" className="pointer-events-auto text-[16px] font-black tracking-[-.1em] sm:text-[18px]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">®</sup></Link>
+          </motion.div>
+          <div className="ml-auto flex items-center gap-1 sm:gap-2">
+            <button onClick={() => { setQuery(''); setSearchOpen(true); }} className="grid size-8 place-items-center" aria-label="Search"><SearchIcon /></button>
+            <Link href="/wishlist" className="grid size-8 place-items-center" aria-label="Saved pieces"><HeartIcon /></Link>
+            <Link href="/account" className="grid size-8 place-items-center" aria-label="Account"><AccountIcon /></Link>
+            <Link href="/bag" className="flex items-center gap-1 text-[9px] font-semibold uppercase tracking-[.14em]"><span className="hidden sm:inline">Bag</span><BagIcon /><span>({count})</span></Link>
+          </div>
+        </div>
+        {menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 py-3 text-black shadow-xl md:hidden"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="mobile-link">Archive <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="mobile-link">Support <span className="float-right">↗</span></Link></div>}
       </header>
 
-      <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:px-12 lg:py-20">
-        <div data-reveal className="flex flex-col justify-between gap-5 border-b border-black/10 pb-6 sm:flex-row sm:items-end">
-          <div><p className="eyebrow">DROP 02 / AVAILABLE NOW</p><h1 className="mt-4 text-[clamp(3rem,7vw,6.8rem)] font-black leading-[.8] tracking-[-.09em]">T-SHIRTS.</h1></div>
-          <p className="max-w-xs text-[12px] leading-relaxed text-black/55">A single oversized piece, presented as the centre of the current release.</p>
-        </div>
-
-        <article data-reveal className="mx-auto mt-12 grid max-w-5xl gap-9 md:grid-cols-[minmax(0,.9fr)_minmax(280px,.7fr)] md:items-center">
-          <Link href={`/tshirts/${tshirtProduct.id}`} className="relative mx-auto block aspect-[4/5] w-full max-w-[420px] overflow-hidden bg-[#e9e9e6]">
-            <Image src={tshirtProduct.cover} alt={tshirtProduct.name} fill priority sizes="(max-width: 768px) 100vw, 420px" className="object-cover transition duration-700 hover:scale-[1.025]" />
-            <span className="absolute left-4 top-4 bg-white px-3 py-2 text-[9px] font-bold tracking-[.14em]">NEW / DRP-TS-003</span>
-          </Link>
-          <div>
-            <p className="eyebrow">THE MAIN RELEASE</p>
-            <h2 className="mt-4 text-[clamp(2.1rem,4vw,4rem)] font-black leading-[.85] tracking-[-.08em] uppercase">Oversized<br />Multi-Balaclavas<br />White T-Shirt</h2>
-            <p className="mt-5 text-[14px] font-bold">59 DNT</p>
-            <p className="mt-3 max-w-sm text-sm leading-6 text-black/55">A relaxed white silhouette designed for repeat wear. Available in S, M and L.</p>
-            <div className="mt-8 grid grid-cols-2 gap-2"><Link href={`/tshirts/${tshirtProduct.id}`} className="flex h-10 items-center justify-center border border-black/25 px-3 text-center text-[9px] font-medium uppercase tracking-[.12em] transition hover:border-black">Product details</Link><button onClick={addToBag} className="flex h-10 items-center justify-center border border-black px-3 text-[9px] font-medium uppercase tracking-[.12em] transition hover:bg-black hover:text-white">Add to bag</button></div>
-            <button onClick={save} aria-pressed={saved} className="mt-4 inline-flex items-center gap-2 border-b border-black/25 pb-1 text-[10px] font-bold uppercase tracking-[.14em] transition hover:border-black">{saved ? '♥ Saved to archive' : '♡ Save to archive'}</button>
-            {notice && <p role="status" className="mt-4 border-l-2 border-black pl-3 text-xs text-black/60">{notice}</p>}
+      <section className="relative isolate min-h-[100svh] overflow-hidden bg-black text-white">
+        <Image src="/dont66.png" alt="DRIPNALITY campaign" fill priority sizes="100vw" className="object-cover object-center" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.34)_0%,rgba(0,0,0,.02)_46%,rgba(0,0,0,.56)_100%)]" />
+        <div className="relative mx-auto flex min-h-[100svh] max-w-[1920px] items-center justify-center px-5 sm:px-8 lg:px-12">
+          <motion.h1 style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="origin-center whitespace-nowrap text-center text-[clamp(3.5rem,13.2vw,15rem)] font-black leading-[.7] tracking-[-.13em] drop-shadow-[0_5px_25px_rgba(0,0,0,.35)]">
+            DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span>
+          </motion.h1>
+          <div className="absolute bottom-8 left-5 sm:bottom-12 sm:left-8 lg:bottom-14 lg:left-12">
+            <p className="text-[9px] font-bold uppercase tracking-[.16em] text-white">New drop out now!</p>
+            <a href="#collection" className="mt-3 inline-flex h-10 min-w-[132px] items-center justify-between border border-white px-3 text-[8px] font-bold uppercase tracking-[.15em] text-white transition hover:bg-white hover:text-black">Shop all <span>→</span></a>
           </div>
+        </div>
+      </section>
+
+      <section id="collection" data-reveal className="mx-auto max-w-[1920px] px-5 pt-12 sm:px-8 sm:pt-16 lg:px-12 lg:pt-20">
+        <div className="grid gap-5 border-b border-black/15 pb-7 md:grid-cols-[minmax(180px,.35fr)_1fr_minmax(240px,.45fr)] md:items-end">
+          <p className="eyebrow">Drop 02 / 01 piece</p>
+          <h2 className="text-[clamp(3.8rem,8vw,8.5rem)] font-black leading-[.7] tracking-[-.13em]">T-SHIRTS.</h2>
+          <p className="max-w-[285px] text-[12px] leading-5 text-black/55 md:justify-self-end">A limited cotton silhouette. Built with restraint, made in Tunisia.</p>
+        </div>
+        <article className="grid border-b border-black/15 lg:grid-cols-[minmax(0,1.34fr)_minmax(400px,.66fr)]">
+          <Link href={`/tshirts/${tshirtProduct.id}`} className="group relative block min-h-[500px] overflow-hidden bg-[#d9d9d4] sm:min-h-[690px]"><Image src={tshirtProduct.cover} alt={tshirtProduct.name} fill priority sizes="(max-width: 1024px) 100vw, 67vw" className="object-cover transition duration-[1400ms] ease-out group-hover:scale-[1.035]" /><span className="absolute left-4 top-4 border border-black/20 bg-[#f4f3ef]/95 px-3 py-2 text-[8px] font-semibold uppercase tracking-[.17em] sm:left-6 sm:top-6">New / {tshirtProduct.serial}</span><span className="absolute bottom-5 left-5 text-[8px] font-semibold uppercase tracking-[.19em] text-white drop-shadow-[0_1px_8px_rgba(0,0,0,.7)] sm:bottom-7 sm:left-7">Discover the piece <span className="ml-3">↗</span></span></Link>
+          <div className="flex min-h-[560px] flex-col bg-[#ecebe7] px-6 py-7 sm:px-10 sm:py-10 lg:px-12 lg:py-12"><div className="flex justify-between border-b border-black/15 pb-4 text-[8px] font-semibold uppercase tracking-[.19em]"><span>Current release</span><span>01 / 01</span></div><div className="mt-12"><p className="text-[9px] font-semibold uppercase tracking-[.17em] text-black/52">{tshirtProduct.serial}</p><h3 className="mt-5 max-w-[520px] text-[clamp(2.5rem,3.65vw,4.45rem)] font-black leading-[.79] tracking-[-.115em] uppercase">Oversized<br />Multi-Balaclavas<br /><span className="font-serif font-normal normal-case italic tracking-[-.12em]">White T-Shirt.</span></h3><div className="mt-8 flex items-center justify-between border-y border-black/15 py-4"><span className="text-[9px] font-semibold uppercase tracking-[.16em]">S / M / L</span><span className="text-[15px] font-semibold">59 TND</span></div><p className="mt-5 max-w-md text-[12px] leading-5 text-black/55">Relaxed cotton fit with a Multi-Balaclavas back graphic. Available exclusively for delivery in Tunisia.</p></div><div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-4 pt-10"><button onClick={addToBag} className="h-11 min-w-[190px] bg-[#11110f] px-5 text-[9px] font-semibold uppercase tracking-[.16em] text-white transition hover:bg-[#3b3a35]">Add to bag</button><Link href={`/tshirts/${tshirtProduct.id}`} className="border-b border-black pb-1 text-[9px] font-semibold uppercase tracking-[.15em] transition hover:opacity-50">Product details ↗</Link><button onClick={save} aria-pressed={saved} className="w-full text-left text-[8px] font-semibold uppercase tracking-[.16em] text-black/60 transition hover:text-black">{saved ? '♥ Saved to archive' : '♡ Save to archive'}</button>{notice && <p role="status" className="w-full border-l-2 border-black pl-3 text-xs text-black/60">{notice}</p>}</div></div>
         </article>
       </section>
-      <section data-reveal className="grid overflow-hidden bg-black text-white lg:grid-cols-2"><div className="relative min-h-[460px]"><Image src="/tshirt-drop/T10.jpeg" alt="DRIPNALITY T-shirt editorial" fill sizes="(max-width:1024px) 100vw,50vw" className="object-cover grayscale"/></div><div className="flex min-h-[460px] flex-col justify-between p-8 sm:p-12 lg:p-16"><div><p className="eyebrow text-white/60">DESIGNED WITH PURPOSE</p><h2 className="mt-5 text-[clamp(3rem,5.5vw,6.2rem)] font-black leading-[.82] tracking-[-.09em]">FORM<br/>FOLLOWS<br/><span className="font-serif font-normal italic tracking-[-.1em]">feeling.</span></h2></div><p className="max-w-sm text-[13px] leading-relaxed text-white/65">A visual record of proportion, graphic language and everyday movement.</p></div></section>
-      <section className="relative min-h-[500px] overflow-hidden bg-black text-white"><video className="absolute inset-0 h-full w-full object-cover opacity-70" autoPlay loop muted playsInline preload="metadata" poster="/tshirt-drop/T12.jpeg"><source src="/daf-dof.mp4" type="video/mp4"/></video><div className="absolute inset-0 bg-black/45"/><div data-reveal className="relative mx-auto flex min-h-[500px] max-w-[1500px] flex-col justify-end px-5 py-12 sm:px-8 lg:px-12"><p className="text-[9px] font-bold tracking-[.25em] text-white/65">MOTION ARCHIVE / 01</p><h2 className="mt-5 text-[clamp(3rem,7vw,7.4rem)] font-black leading-[.8] tracking-[-.1em]">DESIGNED<br/>WITH <span className="font-serif font-normal italic tracking-[-.1em]">purpose.</span></h2></div></section>
+
+      <section data-reveal className="grid overflow-hidden bg-black text-white lg:grid-cols-2"><div className="relative min-h-[460px]"><Image src="/tshirt-drop/T10.jpeg" alt="DRIPNALITY T-shirt editorial" fill sizes="(max-width:1024px) 100vw,50vw" className="object-cover grayscale" /></div><div className="flex min-h-[460px] flex-col justify-between p-8 sm:p-12 lg:p-16"><div><p className="eyebrow text-white/60">DESIGNED WITH PURPOSE</p><h2 className="mt-5 text-[clamp(3rem,5.5vw,6.2rem)] font-black leading-[.82] tracking-[-.09em]">FORM<br />FOLLOWS<br /><span className="font-serif font-normal italic tracking-[-.1em]">feeling.</span></h2></div><p className="max-w-sm text-[13px] leading-relaxed text-white/65">A visual record of proportion, graphic language and everyday movement.</p></div></section>
+      <section data-reveal className="relative min-h-[500px] overflow-hidden bg-black text-white"><video className="absolute inset-0 h-full w-full object-cover opacity-70" autoPlay loop muted playsInline preload="metadata" poster="/tshirt-drop/T12.jpeg"><source src="/daf-dof.mp4" type="video/mp4" /></video><div className="absolute inset-0 bg-black/45" /><div className="relative mx-auto flex min-h-[500px] max-w-[1500px] flex-col justify-end px-5 py-12 sm:px-8 lg:px-12"><p className="text-[9px] font-bold tracking-[.25em] text-white/65">MOTION ARCHIVE / 01</p><h2 className="mt-5 text-[clamp(3rem,7vw,7.4rem)] font-black leading-[.8] tracking-[-.1em]">DESIGNED<br />WITH <span className="font-serif font-normal italic tracking-[-.1em]">purpose.</span></h2></div></section>
       <Footer />
-      {searchOpen && <><button className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm" onClick={() => setSearchOpen(false)} aria-label="Close search"/><section role="dialog" aria-modal="true" aria-label="Search the collection" className="fixed inset-x-3 top-3 z-[51] mx-auto max-w-2xl bg-white p-5 shadow-2xl sm:top-8 sm:p-8"><div className="flex border-b border-black"><SearchIcon className="my-3 size-5 shrink-0"/><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search pieces, colours or categories" className="w-full bg-transparent px-3 py-3 text-xl outline-none"/><button onClick={() => setSearchOpen(false)} className="text-[10px] font-bold tracking-[.14em]">CLOSE</button></div><p className="mt-4 text-[9px] font-bold tracking-[.14em] text-black/45">{query.trim() ? `${matches.length} RESULT${matches.length === 1 ? '' : 'S'}` : 'ALL PIECES'}</p><div className="mt-2">{matches.length ? matches.map((piece) => <Link onClick={() => setSearchOpen(false)} href={piece.href} key={piece.id} className="flex items-center justify-between gap-5 border-b border-black/10 py-4 text-sm font-bold transition hover:pl-2"><span>{piece.name}</span><span className="shrink-0 text-[9px] tracking-[.12em] text-black/55">{piece.detail} ↗</span></Link>) : <p className="border-b border-black/10 py-8 text-sm text-black/55">No pieces match “{query}”. Try T-shirt, black, brown or oversized.</p>}</div></section></>}
+
+      {searchOpen && <><button className="fixed inset-0 z-50 bg-black/35 backdrop-blur-sm" onClick={() => setSearchOpen(false)} aria-label="Close search" /><section role="dialog" aria-modal="true" aria-label="Search the collection" className="fixed inset-x-3 top-3 z-[51] mx-auto max-w-2xl bg-[#f4f3ef] p-5 shadow-2xl sm:top-8 sm:p-8"><div className="flex border-b border-black"><SearchIcon className="my-3 size-5 shrink-0" /><input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search pieces, colours or categories" className="w-full bg-transparent px-3 py-3 text-xl outline-none" /><button onClick={() => setSearchOpen(false)} className="text-[10px] font-semibold tracking-[.14em]">CLOSE</button></div><p className="mt-4 text-[9px] font-semibold tracking-[.14em] text-black/45">{query.trim() ? `${matches.length} RESULT${matches.length === 1 ? '' : 'S'}` : 'ALL PIECES'}</p><div className="mt-2">{matches.length ? matches.map((piece) => <Link onClick={() => setSearchOpen(false)} href={piece.href} key={piece.id} className="flex items-center justify-between gap-5 border-b border-black/10 py-4 text-sm font-bold transition hover:pl-2"><span>{piece.name}</span><span className="shrink-0 text-[9px] tracking-[.12em] text-black/55">{piece.detail} ↗</span></Link>) : <p className="border-b border-black/10 py-8 text-sm text-black/55">No pieces match “{query}”. Try T-shirt, black, brown or oversized.</p>}</div></section></>}
     </main>
   );
 }

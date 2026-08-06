@@ -21,7 +21,7 @@ export default function HoodiesPage() {
   }, []);
 
   const catalog = [
-    { id: tshirtProduct.id, href: `/tshirts/${tshirtProduct.id}`, name: tshirtProduct.name, detail: '59 DNT / T-SHIRT', search: `${tshirtProduct.name} white t-shirt oversized drp-ts-003` },
+    { id: tshirtProduct.id, href: `/tshirts/${tshirtProduct.id}`, name: tshirtProduct.name, detail: '59 TND / T-SHIRT', search: `${tshirtProduct.name} white t-shirt oversized drp-ts-003` },
     ...hoodies.map((hoodie) => ({ id: hoodie.id, href: `/hoodies/${hoodie.id}`, name: hoodie.name, detail: `ARCHIVE / ${hoodie.color.toUpperCase()}`, search: `${hoodie.name} ${hoodie.color} hoodie ${hoodie.serial}` })),
   ];
   const matches = catalog.filter((piece) => piece.search.toLowerCase().includes(query.trim().toLowerCase()));

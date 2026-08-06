@@ -80,11 +80,11 @@ export default function QuickView({ product, onClose, onAdd }: QuickViewProps) {
         <div className="flex min-h-[520px] flex-col p-7 sm:p-11 lg:p-14">
           <p className="text-[9px] font-bold tracking-[0.2em] text-black/45">DRIPNALITY / DROP 01</p>
           <h2 className="mt-4 text-[clamp(1.9rem,3vw,3rem)] font-black leading-[.92] tracking-[-.065em] uppercase">{product.name}</h2>
-          <p className="mt-4 text-[15px] font-bold">{product.price} {product.id === 'drp-ts-003' ? 'DNT' : 'TND'}</p>
+          <p className="mt-4 text-[15px] font-bold">{product.price} TND</p>
           <p className="mt-8 max-w-sm text-[12px] leading-relaxed text-black/58">{product.description}</p>
           <div className="mt-10"><p className="mb-3 text-[10px] font-bold tracking-[0.12em] uppercase">Select size</p><div className="flex gap-2">{(product.sizes || ['S', 'M', 'L', 'XL']).map((option) => <button key={option} disabled={product.soldOut} className={`grid size-11 place-items-center border text-[11px] font-bold transition ${product.soldOut ? 'cursor-not-allowed border-black/15 text-black/35 line-through' : size === option ? 'border-black bg-black text-white' : 'border-black/20 hover:border-black'}`} onClick={() => setSize(option)}>{option}</button>)}</div></div>
           <button disabled={product.soldOut} className="mt-10 flex w-full items-center justify-between bg-black px-5 py-3.5 text-[9px] font-bold tracking-[0.14em] text-white transition disabled:cursor-not-allowed disabled:bg-black/25" onClick={() => { if (!product.soldOut) { onAdd(product, size); onClose(); } }}>{product.soldOut ? 'SOLD OUT — ARCHIVE PIECE' : 'ADD TO BAG'} <span className="text-base">{product.soldOut ? '—' : '+'}</span></button>
-          <div className="mt-auto pt-12 text-[9px] font-bold tracking-[0.1em] text-black/45">{product.soldOut ? `${product.serial || 'ARCHIVE'} — THIS PIECE NOW LIVES IN THE ARCHIVE` : 'TUNISIA DELIVERY / 8 DNT'}</div>
+          <div className="mt-auto pt-12 text-[9px] font-bold tracking-[0.1em] text-black/45">{product.soldOut ? `${product.serial || 'ARCHIVE'} — THIS PIECE NOW LIVES IN THE ARCHIVE` : 'TUNISIA DELIVERY / 8 TND'}</div>
         </div>
       </div>
     </div>
