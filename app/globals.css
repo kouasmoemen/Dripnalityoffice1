@@ -31,6 +31,7 @@ button { cursor: pointer; }
 
 /* Reuse the centred animated brand across every standard site header. */
 .has-global-brand-switcher header > div > a.absolute { display: none !important; }
+.has-global-brand-switcher main > header > a[href="/"] { display: none !important; }
 
 /* Hoodie editorial: the new campaign image is intentionally image-only. */
 .hoodie-ddrf-editorial img { filter: grayscale(1); }

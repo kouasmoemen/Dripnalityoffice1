@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { addTshirtToBag } from '../../../lib/commerce-client';
+import { useEffect, useState } from 'react';
+import { addTshirtToBag, bagCount } from '../../../lib/commerce-client';
 import { AccountIcon, BagIcon, HeartIcon, SearchIcon } from '../../../components/StoreIcons';
 import { supabase } from '../../../lib/supabase';
 import { tshirtGallery, tshirtProduct } from '../../../lib/tshirt';
@@ -14,6 +14,14 @@ export default function TShirtProductPage() {
   const params = useParams<{ slug: string }>();
   const [size, setSize] = useState<'S' | 'M' | 'L'>('M');
   const [notice, setNotice] = useState('');
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const refresh = () => setCount(bagCount());
+    refresh();
+    window.addEventListener('dripnality:bag-updated', refresh);
+    return () => window.removeEventListener('dripnality:bag-updated', refresh);
+  }, []);
   if (params.slug !== tshirtProduct.id) return <main className="grid min-h-screen place-items-center bg-[#f8f8f8]"><Link href="/tshirts" className="text-sm underline underline-offset-4">Back to T-shirts</Link></main>;
 
   const requireAccount = async () => {
@@ -33,7 +41,13 @@ export default function TShirtProductPage() {
 
   return (
     <main className="min-h-screen bg-[#f7f7f5] text-black">
-      <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f7f7f5]/95 backdrop-blur-md"><div className="relative mx-auto flex h-16 max-w-[1600px] items-center px-3 sm:px-8 lg:px-12"><nav className="hidden gap-6 md:flex"><Link href="/tshirts" className="text-[9px] font-bold tracking-[.14em]">T-SHIRTS</Link><Link href="/support" className="text-[9px] font-bold tracking-[.14em]">SUPPORT</Link></nav><Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[15px] font-black tracking-[-.08em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">&reg;</sup></Link><div className="ml-auto flex items-center gap-1 sm:gap-2"><Link href="/tshirts" className="grid size-8 place-items-center" aria-label="Search collection"><SearchIcon/></Link><Link href="/wishlist" className="grid size-8 place-items-center" aria-label="Saved pieces"><HeartIcon/></Link><Link href="/account" className="grid size-8 place-items-center" aria-label="Account"><AccountIcon/></Link><Link href="/bag" className="flex items-center gap-1 text-[10px] font-bold tracking-[.13em]" aria-label="Shopping bag"><span className="hidden sm:inline">BAG</span><BagIcon/><span>(0)</span></Link></div></div></header>
+      <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f7f7f5]/95 backdrop-blur-md">
+        <div className="relative mx-auto flex h-16 max-w-[1600px] items-center px-3 sm:px-8 lg:px-12">
+          <nav className="hidden gap-6 md:flex"><Link href="/tshirts" className="text-[9px] font-bold tracking-[.14em]">T-SHIRTS</Link><Link href="/support" className="text-[9px] font-bold tracking-[.14em]">SUPPORT</Link></nav>
+          <Link href="/" className="absolute left-1/2 -translate-x-1/2 text-[15px] font-black tracking-[-.08em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">&reg;</sup></Link>
+          <div className="ml-auto flex items-center gap-1 sm:gap-2"><Link href="/tshirts" className="grid size-8 place-items-center" aria-label="Search collection"><SearchIcon/></Link><Link href="/wishlist" className="grid size-8 place-items-center" aria-label="Saved pieces"><HeartIcon/></Link><Link href="/account" className="grid size-8 place-items-center" aria-label="Account"><AccountIcon/></Link><Link href="/bag" className="flex items-center gap-1 text-[10px] font-bold tracking-[.13em]" aria-label="Shopping bag"><span className="hidden sm:inline">BAG</span><BagIcon/><span>({count})</span></Link></div>
+        </div>
+      </header>
       <section className="mx-auto max-w-[1560px] px-3 py-3 sm:px-6 sm:py-6 lg:grid lg:grid-cols-[minmax(0,1.22fr)_minmax(340px,.78fr)] lg:gap-10 lg:px-10 lg:py-10">
         <div className="grid gap-3 sm:grid-cols-2">
           {tshirtGallery.map((image, index) => <figure key={image} className="relative aspect-[4/5] overflow-hidden bg-[#e9e9e6]"><Image src={image} alt={`${tshirtProduct.name}, view ${index + 1}`} fill priority={index < 2} sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 42vw" className="object-cover" /><figcaption className="absolute bottom-3 left-3 bg-white/90 px-2.5 py-1.5 text-[8px] font-bold tracking-[.14em]">{String(index + 1).padStart(2, '0')} / {String(tshirtGallery.length).padStart(2, '0')}</figcaption></figure>)}
