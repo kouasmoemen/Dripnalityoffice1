@@ -1,6 +1,5 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -14,18 +13,11 @@ import { tshirtProduct } from '../../lib/tshirt';
 
 export default function TShirtsPage() {
   const router = useRouter();
-  const { scrollY } = useScroll();
-  const heroLogoScale = useTransform(scrollY, [0, 190], [1, 0.56]);
-  const heroLogoY = useTransform(scrollY, [0, 190], [0, -46]);
-  const heroLogoOpacity = useTransform(scrollY, [0, 135, 220], [1, 0.4, 0]);
-  const headerLogoOpacity = useTransform(scrollY, [0, 85, 165], [0, 0.4, 1]);
-  const headerLogoY = useTransform(scrollY, [0, 165], [-8, 0]);
   const [count, setCount] = useState(0);
   const [saved, setSaved] = useState(false);
   const [notice, setNotice] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [headerVisible, setHeaderVisible] = useState(false);
   const [query, setQuery] = useState('');
   const catalog = [
     { id: tshirtProduct.id, href: `/tshirts/${tshirtProduct.id}`, name: tshirtProduct.name, detail: '59 TND / T-SHIRT', search: `${tshirtProduct.name} white t-shirt oversized drp-ts-003` },
@@ -43,20 +35,6 @@ export default function TShirtsPage() {
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('dripnality:bag-updated', refresh);
-    };
-  }, []);
-
-  useEffect(() => {
-    let frame = 0;
-    const updateHeader = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setHeaderVisible(window.scrollY > 60));
-    };
-    updateHeader();
-    window.addEventListener('scroll', updateHeader, { passive: true });
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', updateHeader);
     };
   }, []);
 
@@ -109,7 +87,7 @@ export default function TShirtsPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f3ef] text-[#11110f]"><style jsx global>{`[data-reveal]{opacity:0;transform:translateY(24px);transition:opacity .75s ease,transform .75s cubic-bezier(.22,1,.36,1)}.reveal-in{opacity:1!important;transform:translateY(0)!important}@media(prefers-reduced-motion:reduce){[data-reveal]{opacity:1;transform:none;transition:none}}`}</style>
-      <header className={`fixed inset-x-0 top-0 z-40 border-b border-black/10 bg-white text-black shadow-sm transition-[transform,opacity] duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${headerVisible ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-full opacity-0'}`}>
+      <header className="sticky top-0 z-40 border-b border-black/10 bg-white text-black shadow-sm">
         <div className="relative mx-auto flex h-12 max-w-[1920px] items-center px-5 sm:px-8 lg:px-12">
           <nav className="hidden gap-8 md:flex">
             <Link href="/hoodies" className="text-[9px] font-semibold uppercase tracking-[.16em] transition hover:opacity-50">Archive</Link>
@@ -118,19 +96,12 @@ export default function TShirtsPage() {
           <button onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="tshirts-mobile-menu" className="inline-flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[.16em] md:hidden">
             <span className="grid gap-1" aria-hidden="true"><i className={`block h-px w-4 bg-current transition-transform ${menuOpen ? 'translate-y-[3px] rotate-45' : ''}`} /><i className={`block h-px w-4 bg-current transition-transform ${menuOpen ? '-translate-y-[2px] -rotate-45' : ''}`} /></span>Menu
           </button>
-          <motion.div style={{ opacity: headerLogoOpacity, y: headerLogoY }} className="hidden">
-            <Link href="/" className="pointer-events-auto text-[16px] font-black tracking-[-.1em] sm:text-[18px]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[6px]">®</sup></Link>
-          </motion.div>
-          <Link href="/" aria-label="DRIPNALITY home" className="hidden">
-            <span className="brand-logo-cycle absolute grid size-9 place-items-center overflow-hidden"><Image src="/klk.jpg" alt="" fill unoptimized sizes="36px" className="scale-[2.25] object-cover mix-blend-multiply" /></span>
-            <span translate="no" className="brand-word-cycle notranslate absolute text-[15px] font-black tracking-[-.1em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[5px]">®</sup></span>
-          </Link>
-          <motion.div style={{ opacity: headerLogoOpacity, y: headerLogoY }} className="pointer-events-none absolute left-1/2 -translate-x-1/2">
-            <Link href="/" aria-label="DRIPNALITY home" className="pointer-events-auto relative grid h-9 w-[128px] place-items-center overflow-hidden">
-              <span className="brand-logo-cycle absolute grid size-9 place-items-center overflow-hidden"><Image src="/klk.png" alt="" fill unoptimized sizes="36px" className="scale-[2.05] object-contain brightness-0" /></span>
-              <span translate="no" className="brand-word-cycle notranslate absolute text-[16px] font-black tracking-[-.1em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[5px]">®</sup></span>
+          <div className="absolute left-1/2 -translate-x-1/2">
+            <Link href="/" aria-label="DRIPNALITY home" className="relative grid h-8 w-[108px] place-items-center overflow-hidden">
+              <span className="brand-logo-cycle absolute grid size-7 place-items-center overflow-hidden"><Image src="/klk.png" alt="" fill unoptimized sizes="28px" className="scale-[1.85] object-contain brightness-0" /></span>
+              <span translate="no" className="brand-word-cycle notranslate absolute text-[14px] font-black tracking-[-.1em]">DRIP<span className="font-normal">NALITY</span><sup className="ml-0.5 text-[4px]">®</sup></span>
             </Link>
-          </motion.div>
+          </div>
           <div className="ml-auto flex min-w-0 items-center gap-0 sm:gap-1">
             <button onClick={() => { setQuery(''); setSearchOpen(true); }} className="header-icon grid h-9 w-8 place-items-center sm:size-9" aria-label="Search"><SearchIcon /></button>
             <Link href="/wishlist" className="header-icon grid h-9 w-8 place-items-center sm:size-9" aria-label="Saved pieces"><HeartIcon /></Link>
@@ -140,53 +111,6 @@ export default function TShirtsPage() {
         </div>
         {menuOpen && <div id="tshirts-mobile-menu" className="absolute inset-x-0 top-full border-b border-black/10 bg-white px-5 py-3 text-black shadow-xl md:hidden"><Link onClick={() => setMenuOpen(false)} href="/hoodies" className="mobile-link">Archive <span className="float-right">↗</span></Link><Link onClick={() => setMenuOpen(false)} href="/support" className="mobile-link">Support <span className="float-right">↗</span></Link></div>}
       </header>
-
-      <section className="hidden" aria-hidden="true">
-        <Image src="/dont66.png" alt="DRIPNALITY campaign" fill priority sizes="100vw" className="object-cover object-top" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.34)_0%,rgba(0,0,0,.02)_46%,rgba(0,0,0,.56)_100%)]" />
-        <div className="relative mx-auto flex w-full h-full max-w-[1920px] items-center justify-center px-3 sm:px-5 md:px-8 lg:px-12">
-          <motion.h1 translate="no" style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="notranslate origin-center whitespace-nowrap text-center text-[clamp(1.2rem,6vw,8rem)] font-black leading-[.7] tracking-[-.13em] drop-shadow-[0_5px_25px_rgba(0,0,0,.35)]">
-            DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span>
-          </motion.h1>
-          <div className="absolute bottom-2 left-3 sm:bottom-4 sm:left-5 md:bottom-6 md:left-8 lg:bottom-14 lg:left-12">
-            <p className="text-[clamp(6px,1.5vw,9px)] font-bold uppercase tracking-[.16em] text-white">New drop out now!</p>
-            <a href="#collection" className="mt-1 sm:mt-2 inline-flex h-6 sm:h-8 md:h-10 min-w-[80px] sm:min-w-[112px] md:min-w-[132px] items-center justify-between border border-white px-2 sm:px-2.5 md:px-3 text-[clamp(5px,1.2vw,8px)] font-bold uppercase tracking-[.15em] text-white transition hover:bg-white hover:text-black">Shop all <span>→</span></a>
-          </div>
-        </div>
-      </section>
-
-      <section className="hidden" aria-hidden="true">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_72%_28%,rgba(230,255,57,.23),transparent_0_25%),radial-gradient(circle_at_10%_85%,rgba(255,255,255,.1),transparent_0_32%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(255,255,255,.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.1)_1px,transparent_1px)] [background-size:52px_52px]" />
-        <div className="pointer-events-none absolute -right-[.08em] -top-[.35em] select-none text-[clamp(12rem,33vw,38rem)] font-black leading-none tracking-[-.16em] text-white/[.035]">02</div>
-        <div className="relative mx-auto flex min-h-[min(760px,100svh)] max-w-[1920px] flex-col justify-between px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-14">
-          <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-[.22em] text-white/60 sm:text-[9px]"><span>Dripnality / Tunis</span><span>Drop 02</span></div>
-          <div className="max-w-5xl py-12 sm:py-16"><p className="mb-5 text-[9px] font-semibold uppercase tracking-[.28em] text-[#dfff3d] sm:text-[10px]">The independent uniform</p><h1 className="text-[clamp(4.1rem,11vw,12.5rem)] font-black leading-[.7] tracking-[-.115em]">MOVE<br />WITH<br /><span className="font-serif font-normal italic tracking-[-.12em]">purpose.</span></h1><p className="mt-8 max-w-xs text-[12px] leading-6 text-white/65 sm:text-[13px]">A limited T-shirt made for the spaces between where you are and where you are going.</p></div>
-          <div className="flex flex-col gap-5 border-t border-white/20 pt-5 sm:flex-row sm:items-end sm:justify-between"><a href="#collection" className="group inline-flex h-12 w-full max-w-[260px] items-center justify-between bg-[#f4f3ef] px-4 text-[9px] font-bold uppercase tracking-[.17em] text-black transition hover:bg-[#dfff3d]">Shop the drop <span className="text-base transition-transform group-hover:translate-x-1">↗</span></a><p className="text-[8px] font-semibold uppercase tracking-[.2em] text-white/55 sm:text-right">Oversized Multi-Balaclavas<br />White T-shirt / 59 TND</p></div>
-        </div>
-      </section>
-
-      <section className="hidden" aria-hidden="true">
-        <div className="pointer-events-none absolute inset-x-0 top-[18%] h-px bg-black/10" />
-        <div className="pointer-events-none absolute inset-x-0 top-[54%] h-px bg-black/10" />
-        <div className="pointer-events-none absolute left-[9%] top-0 h-full w-px bg-black/10" />
-        <div className="pointer-events-none absolute right-[9%] top-0 h-full w-px bg-black/10" />
-        <div className="relative mx-auto flex min-h-[min(720px,100svh)] max-w-[1920px] flex-col justify-between px-5 py-7 sm:px-8 sm:py-10 lg:px-12 lg:py-12">
-          <div className="flex items-center justify-between text-[8px] font-semibold uppercase tracking-[.2em] text-black/55 sm:text-[9px]"><span>Dripnality® / 2026</span><span>Limited releases</span></div>
-          <div className="py-10 sm:py-14"><motion.h1 translate="no" style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="notranslate origin-left whitespace-nowrap text-[clamp(3.9rem,13vw,15rem)] font-black leading-[.69] tracking-[-.125em]">DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span></motion.h1><p className="mt-7 max-w-xs text-[12px] leading-6 text-black/60 sm:text-[13px]">Independent uniforms for the everyday. Designed in Tunisia, made with intention.</p></div>
-          <div className="flex flex-col gap-5 border-t border-black pt-5 sm:flex-row sm:items-end sm:justify-between"><a href="#collection" className="group inline-flex h-11 w-full max-w-[220px] items-center justify-between bg-black px-4 text-[9px] font-bold uppercase tracking-[.17em] text-white transition hover:bg-black/75">Shop the drop <span className="text-base transition-transform group-hover:translate-x-1">↗</span></a><p className="text-[8px] font-semibold uppercase tracking-[.19em] text-black/55 sm:text-right">Drop 02 / Multi-Balaclavas<br />T-shirt / 59 TND</p></div>
-        </div>
-      </section>
-
-      <section id="tshirts-hero" className="relative isolate flex min-h-[min(760px,100svh)] items-center justify-center overflow-hidden bg-[#f7f7f5] px-5 text-black sm:px-8 lg:px-12">
-        <div className="absolute inset-x-5 top-5 h-px bg-black/15 sm:inset-x-8 sm:top-8 lg:inset-x-12 lg:top-10" />
-        <div className="absolute inset-x-5 bottom-5 h-px bg-black/15 sm:inset-x-8 sm:bottom-8 lg:inset-x-12 lg:bottom-10" />
-        <div className="relative flex w-full max-w-[1800px] flex-col items-center text-center">
-          <motion.h1 translate="no" style={{ scale: heroLogoScale, y: heroLogoY, opacity: heroLogoOpacity }} className="notranslate origin-center whitespace-nowrap text-[clamp(3.55rem,12.9vw,15rem)] font-black leading-[.7] tracking-[-.13em]">DRIPNALITY<span className="ml-[.05em] align-top text-[.16em] font-medium tracking-normal">®</span></motion.h1>
-          <p className="mt-8 max-w-[280px] text-[12px] leading-6 text-black/60 sm:mt-10 sm:text-[13px]">A new expression of the everyday uniform.</p>
-          <a href="#collection" className="mt-8 inline-flex h-11 min-w-[185px] items-center justify-between bg-black px-4 text-[9px] font-bold uppercase tracking-[.17em] text-white transition hover:bg-black/75 sm:mt-10">Shop the drop <span className="text-base">↗</span></a>
-        </div>
-      </section>
 
       <section className="marquee-strip overflow-hidden bg-black py-3 text-white" aria-label="DRIPNALITY release message">
         <div className="marquee-track flex w-max whitespace-nowrap text-[9px] font-semibold uppercase tracking-[.2em] sm:text-[10px]">

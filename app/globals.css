@@ -20,22 +20,6 @@ button { cursor: pointer; }
 .footer-links a { width: fit-content; color: rgba(255,255,255,.55); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; transition: color .2s ease; }
 .footer-links a:hover { color: #fff; }
 
-@keyframes hero-arrival {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes hero-detail-arrival {
-  from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-#tshirts-hero { animation: hero-arrival .7s ease-out both; }
-#tshirts-hero p,
-#tshirts-hero a { animation: hero-detail-arrival .7s cubic-bezier(.22,1,.36,1) both; }
-#tshirts-hero p { animation-delay: .18s; }
-#tshirts-hero a { animation-delay: .32s; }
-
 .header-icon,
 .header-bag { transition: background-color .2s ease, color .2s ease, transform .2s ease; }
 .header-icon:hover,
@@ -227,7 +211,4 @@ button { cursor: pointer; }
   .brand-logo-cycle { animation: none; }
   .brand-word-cycle { display: none; }
   .marquee-track { animation: none; }
-  #tshirts-hero,
-  #tshirts-hero p,
-  #tshirts-hero a { animation: none; }
 }
