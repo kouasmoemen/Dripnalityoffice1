@@ -12,7 +12,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${siteUrl}/hoodies/black-signature-zip`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/hoodies/brown-archive-zip`, lastModified, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${siteUrl}/support`, lastModified, changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${siteUrl}/account`, lastModified, changeFrequency: 'monthly', priority: 0.4 },
-    { url: `${siteUrl}/developers`, lastModified, changeFrequency: 'monthly', priority: 0.3 },
   ];
 }

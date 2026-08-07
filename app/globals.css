@@ -20,6 +20,37 @@ button { cursor: pointer; }
 .footer-links a { width: fit-content; color: rgba(255,255,255,.55); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; transition: color .2s ease; }
 .footer-links a:hover { color: #fff; }
 
+@keyframes hero-arrival {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hero-detail-arrival {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#tshirts-hero { animation: hero-arrival .7s ease-out both; }
+#tshirts-hero p,
+#tshirts-hero a { animation: hero-detail-arrival .7s cubic-bezier(.22,1,.36,1) both; }
+#tshirts-hero p { animation-delay: .18s; }
+#tshirts-hero a { animation-delay: .32s; }
+
+.header-icon,
+.header-bag { transition: background-color .2s ease, color .2s ease, transform .2s ease; }
+.header-icon:hover,
+.header-bag:hover { background: #11110f; color: #fff; }
+.header-icon:active,
+.header-bag:active { transform: scale(.94); }
+.header-icon:focus-visible,
+.header-bag:focus-visible { outline: 2px solid #11110f; outline-offset: 2px; }
+
+/* Reuse the centred animated brand across every standard site header. */
+.has-global-brand-switcher header a.absolute.left-1\/2 { display: none; }
+
+/* Hoodie editorial: the new campaign image is intentionally image-only. */
+.hoodie-ddrf-editorial img { filter: grayscale(1); }
+
 /* Compact Zara-inspired product presentation for the T-shirts collection. */
 #collection {
   max-width: 1440px;
@@ -39,7 +70,11 @@ button { cursor: pointer; }
 }
 
 #collection > article > div > div:last-child {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: center;
+  column-gap: 12px;
+  row-gap: 8px;
   width: min(100%, 320px);
   padding-top: 2rem;
 }
@@ -53,15 +88,20 @@ button { cursor: pointer; }
   justify-content: center;
 }
 
+#collection > article > div > div:last-child > button:first-child { grid-column: 1; grid-row: 1; }
+#collection > article > div > div:last-child > a { grid-column: 1 / -1; grid-row: 2; }
+
 #collection > article > div > div:last-child > button:first-child {
-  background: #11110f;
+  background: transparent;
+  border: 1px solid rgba(17,17,15,.75);
   padding-inline: 18px;
-  color: #fff;
+  color: #11110f;
   letter-spacing: .15em;
 }
 
 #collection > article > div > div:last-child > button:first-child:hover {
-  background: #3b3a35;
+  background: #11110f;
+  color: #fff;
 }
 
 #collection > article > div > div:last-child > a {
@@ -79,8 +119,73 @@ button { cursor: pointer; }
 }
 
 #collection > article > div > div:last-child > button[aria-pressed] {
+  display: inline-flex;
+  grid-column: 2;
+  grid-row: 1;
+  width: 30px;
+  height: 30px;
   margin-top: 14px;
-  font-size: 8px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  transition: transform .2s ease;
+}
+
+#collection > article > div > div:last-child > button[aria-pressed]::after {
+  content: '♡';
+  color: rgba(17,17,15,.72);
+  font-size: 27px;
+  line-height: 1;
+  transition: color .2s ease, transform .2s ease;
+}
+
+#collection > article > div > div:last-child > button[aria-pressed][aria-pressed="true"]::after { content: '♥'; color: #c52036; }
+
+#collection > article > div > div:last-child > button[aria-pressed]:hover {
+  transform: scale(1.1);
+}
+
+#collection > article > div > div:last-child > button[aria-pressed]:hover::after { color: #11110f; transform: scale(1.06); }
+#collection > article > div > div:last-child > button[aria-pressed][aria-pressed="true"]:hover::after { color: #c52036; }
+
+#tshirts-hero a {
+  background: transparent;
+  border: 1px solid #11110f;
+  color: #11110f;
+}
+
+#tshirts-hero a:hover { background: #11110f; color: #fff; }
+
+/* Keep the editorial image and statement locked side by side at every width. */
+#collection + section[data-reveal] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+}
+
+#collection + section[data-reveal] > div {
+  min-width: 0;
+  min-height: clamp(320px, 45vw, 600px);
+}
+
+#collection + section[data-reveal] > div:nth-child(2) {
+  padding: clamp(20px, 4vw, 64px);
+}
+
+#collection + section[data-reveal] h2 {
+  font-size: clamp(1.75rem, 5.5vw, 6.2rem);
+  overflow-wrap: anywhere;
+}
+
+#collection + section[data-reveal] p {
+  font-size: clamp(.62rem, 1.3vw, .82rem);
+}
+
+@media (max-width: 639px) {
+  #collection > article > div > div:last-child { width: 100%; }
+  #collection > article > div > div:last-child > button:first-child,
+  #collection > article > div > div:last-child > a { height: 42px; }
+  #tshirts-hero a { min-width: 162px; height: 40px; }
 }
 
 @media (min-width: 640px) {
@@ -92,4 +197,37 @@ button { cursor: pointer; }
   #collection > article { grid-template-columns: minmax(0, .95fr) minmax(350px, .65fr); }
   #collection > article > a { min-height: 590px; }
   #collection > article > div { min-height: 590px; }
+}
+
+@keyframes brand-logo-cycle {
+  0%, 34% { opacity: 1; transform: scale(1) rotate(0deg); }
+  43%, 84% { opacity: 0; transform: scale(.72) rotate(-8deg); }
+  92%, 100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+@keyframes brand-word-cycle {
+  0%, 35% { opacity: 0; transform: translateY(6px) scale(.92); }
+  46%, 77% { opacity: 1; transform: translateY(0) scale(1); }
+  88%, 100% { opacity: 0; transform: translateY(-6px) scale(.92); }
+}
+
+.brand-logo-cycle { animation: brand-logo-cycle 7s cubic-bezier(.22,1,.36,1) infinite; }
+.brand-word-cycle { animation: brand-word-cycle 7s cubic-bezier(.22,1,.36,1) infinite; }
+
+@keyframes brand-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-33.333%); }
+}
+
+.marquee-track > span { flex: 0 0 auto; }
+.marquee-track { animation: brand-marquee 26s linear infinite; will-change: transform; }
+.marquee-strip:hover .marquee-track { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo-cycle { animation: none; }
+  .brand-word-cycle { display: none; }
+  .marquee-track { animation: none; }
+  #tshirts-hero,
+  #tshirts-hero p,
+  #tshirts-hero a { animation: none; }
 }

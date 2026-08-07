@@ -2,12 +2,14 @@ import type { Metadata } from 'next';
 import './globals.css';
 import CookieConsent from '../components/CookieConsent';
 import DropCountdown from '../components/DropCountdown';
+import GlobalBrandSwitcher from '../components/GlobalBrandSwitcher';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dripnality.com';
 
 const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
+    { '@type': 'WebPage', '@id': `${siteUrl}/#webpage`, url: siteUrl, name: 'DRIPNALITY | Tunisian streetwear', inLanguage: 'en-TN', about: { '@type': 'Thing', name: 'Tunisian streetwear' }, isPartOf: { '@id': `${siteUrl}/#website` } },
     { '@type': 'Organization', '@id': `${siteUrl}/#organization`, name: 'DRIPNALITY', url: siteUrl, description: 'A considered Tunisian streetwear studio making limited releases.', sameAs: ['https://www.instagram.com/dripnality', 'https://www.tiktok.com/@dripnality'] },
     { '@type': 'WebSite', '@id': `${siteUrl}/#website`, url: siteUrl, name: 'DRIPNALITY', publisher: { '@id': `${siteUrl}/#organization` }, inLanguage: 'en' },
     {
@@ -26,6 +28,8 @@ export const metadata: Metadata = {
   title: { default: 'DRIPNALITY® — Designed with purpose', template: '%s | DRIPNALITY®' },
   description: 'DRIPNALITY is a Tunisian streetwear studio. Shop the Oversized Multi-Balaclavas White T-Shirt and explore limited archive releases.',
   keywords: ['DRIPNALITY', 'Multi-Balaclavas T-Shirt', 'oversized white t-shirt', 'Tunisia streetwear', 'limited drop', 'zip hoodie', 'fashion'],
+  category: 'fashion',
+  other: { 'geo.region': 'TN', 'geo.placename': 'Tunisia' },
   authors: [{ name: 'DRIPNALITY Studio' }],
   creator: 'DRIPNALITY Studio',
   icons: {
@@ -40,5 +44,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body>{children}<DropCountdown/><CookieConsent/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}/></body></html>;
+  return <html lang="en"><body>{children}<GlobalBrandSwitcher/><DropCountdown/><CookieConsent/><script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}/></body></html>;
 }
