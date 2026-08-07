@@ -30,7 +30,7 @@ button { cursor: pointer; }
 .header-bag:focus-visible { outline: 2px solid #11110f; outline-offset: 2px; }
 
 /* Reuse the centred animated brand across every standard site header. */
-.has-global-brand-switcher header a.absolute.left-1\/2 { display: none; }
+.has-global-brand-switcher header > div > a.absolute { display: none !important; }
 
 /* Hoodie editorial: the new campaign image is intentionally image-only. */
 .hoodie-ddrf-editorial img { filter: grayscale(1); }
